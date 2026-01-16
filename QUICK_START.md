@@ -15,8 +15,10 @@
 3. **Verify environment variables:**
    The `.env.local` file should already be created with your Supabase credentials. If not, create it with:
    ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://fwalufirlnvffvhctalf.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3YWx1ZmlybG52ZmZ2aGN0YWxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4MTA0MzMsImV4cCI6MjA4MzM4NjQzM30.yb-417R0WqYvJq0o8cqsHOSoPGltvqXMbtABg0Mafac
+   NEXT_PUBLIC_SUPABASE_URL=https://zzbumulzhbvqqbpdzkni.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp6YnVtdWx6aGJ2cXFicGR6a25pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4MTQ1NDcsImV4cCI6MjA4MzM5MDU0N30.jzunrUkjsupY6XK3GXo7CS2bkdfCty0lOWbpBZHtpBg
+   NEXT_PUBLIC_SITE_URL=https://app.claimchaser.ai
+   NEXT_PUBLIC_APP_URL=https://app.claimchaser.ai
    ```
 
 4. **Start the development server:**
@@ -75,7 +77,7 @@ If port 3004 is already in use, you can change it in `package.json`:
 
 ### Supabase Connection Issues
 - Verify `.env.local` file exists and has correct values
-- Check Supabase project status at: https://supabase.com/dashboard/project/fwalufirlnvffvhctalf
+- Check Supabase project status at: https://supabase.com/dashboard/project/zzbumulzhbvqqbpdzkni
 
 ### Type Errors
 Run type checking:

@@ -13,8 +13,67 @@ body.demo-page {
   background: #1e7145 !important;
 }
 
+/* Demo page white text override - only for text directly on green background */
+/* Target only the intro section, not content inside cards */
+.demo-page-content > div:first-child h1,
+.demo-page-content > div:first-child p {
+  color: white !important;
+}
+
+/* Ensure text-white classes work on demo page, but not inside cards */
+body.demo-page .text-white:not(.geist-card .text-white),
+body.demo-page [class*="text-white"]:not(.geist-card [class*="text-white"]) {
+  color: white !important;
+}
+
+/* Reset text color inside cards to black for readability */
+body.demo-page .geist-card,
+body.demo-page .geist-card *:not(.text-white):not([class*="text-white"]),
+body.demo-page [class*="geist-card"] *:not(.text-white):not([class*="text-white"]) {
+  color: inherit !important;
+}
+
+/* Ensure cards and their content use default (black) text */
+.demo-page-content .geist-card h1:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card h2:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card h3:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card h4:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card h5:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card h6:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card p:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card label:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card span:not(.text-white):not([class*="text-white"]),
+.demo-page-content .geist-card div:not(.text-white):not([class*="text-white"]) {
+  color: inherit !important;
+}
+
+/* But allow buttons and elements with text-white class to be white - must come after the reset rules */
+body.demo-page .geist-card button.text-white,
+body.demo-page .geist-card .text-white,
+body.demo-page .geist-card [class*="text-white"],
+.demo-page-content .geist-card button.text-white,
+.demo-page-content .geist-card .text-white,
+.demo-page-content .geist-card [class*="text-white"],
+body.demo-page button.text-white,
+body.demo-page [class*="text-white"] button {
+  color: white !important;
+}
+
 /* Ensure text elements inherit black by default, but allow Tailwind classes to override */
-p, h1, h2, h3, h4, h5, h6, span, div, td, th, label, li {
+/* Note: Demo page rules below override this */
+p:not(body.demo-page p),
+h1:not(body.demo-page h1),
+h2:not(body.demo-page h2),
+h3:not(body.demo-page h3),
+h4:not(body.demo-page h4),
+h5:not(body.demo-page h5),
+h6:not(body.demo-page h6),
+span:not(body.demo-page span),
+div:not(body.demo-page div),
+td:not(body.demo-page td),
+th:not(body.demo-page th),
+label:not(body.demo-page label),
+li:not(body.demo-page li) {
   color: inherit;
 }
 

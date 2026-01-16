@@ -36,7 +36,8 @@ export function middleware(request: NextRequest) {
   }
   
   // For app subdomain or no subdomain, ensure demo routes are not accessible
-  if ((subdomain === 'app' || !host.includes('.')) && url.pathname.startsWith('/demo')) {
+  // But allow localhost for local development
+  if ((subdomain === 'app' || (!host.includes('.') && !host.includes('localhost'))) && url.pathname.startsWith('/demo')) {
     // Redirect to home if trying to access demo on app subdomain
     url.pathname = '/'
     return NextResponse.redirect(url)

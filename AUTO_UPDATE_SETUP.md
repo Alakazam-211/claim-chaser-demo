@@ -38,7 +38,8 @@ Make sure these are set in your Vercel project:
 
 - `ELEVENLABS_API_KEY` - Your ElevenLabs API key
 - `CRON_SECRET` (optional) - Secret for securing the cron endpoint
-- `NEXT_PUBLIC_APP_URL` (optional) - Your app URL for internal API calls
+- `NEXT_PUBLIC_APP_URL` (optional) - Your app URL for internal API calls (e.g., `https://app.claimchaser.ai`)
+- `NEXT_PUBLIC_SITE_URL` (optional) - Your site URL (e.g., `https://app.claimchaser.ai` for production or `https://demo.claimchaser.ai` for demo)
 
 ### 4. Deploy
 
