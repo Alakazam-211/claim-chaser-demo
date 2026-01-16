@@ -304,3 +304,48 @@ button.text-white,
   text-shadow: none !important;
 }
 
+/* Remove shadows from all text elements inside Geist cards */
+.geist-card p,
+.geist-card span,
+.geist-card div:not(.geist-card):not([class*="bg-"]):not([class*="border"]),
+.geist-card h1,
+.geist-card h2,
+.geist-card h3,
+.geist-card h4,
+.geist-card h5,
+.geist-card h6,
+.geist-card label,
+.geist-card li,
+.geist-card td,
+.geist-card th {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove shadows from nested divs that aren't cards or buttons */
+.geist-card > div > div:not(.geist-card):not(.geist-button):not([class*="bg-blue"]):not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-yellow"]):not([class*="bg-orange"]):not([class*="bg-gray"]) {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Comprehensive rule: Remove all shadows from child elements inside Geist cards */
+.geist-card *:not(.geist-card):not(.geist-button):not([class*="shadow-"]) {
+  text-shadow: none !important;
+}
+
+/* Specifically target any elements that might have shadows applied via material classes */
+.material-base *,
+.material-small *,
+.material-medium *,
+.material-large * {
+  text-shadow: none !important;
+}
+
+/* Remove shadows from text elements specifically */
+.geist-card p:not([class*="shadow"]),
+.geist-card span:not([class*="shadow"]),
+.geist-card div:not([class*="shadow"]):not(.geist-card):not(.geist-button) {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
