@@ -338,9 +338,9 @@ export default function DemoPage() {
 
   return (
     <div className="max-w-4xl mx-auto demo-page-content">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-white mb-2">Claim Chaser Demo</h1>
-        <p className="text-white">
+      <div className="mb-8" style={{ color: 'white' }}>
+        <h1 className="text-4xl font-bold mb-2" style={{ color: 'white' }}>Claim Chaser Demo</h1>
+        <p style={{ color: 'white' }}>
           Experience how AI Claim Chaser automatically calls insurance providers to get denial reasons.
           Enter your information below and we'll call you to demonstrate the system.
         </p>

@@ -13,10 +13,26 @@ body.demo-page {
   background: #1e7145 !important;
 }
 
+/* Ensure demo page content wrapper has proper styling */
+body.demo-page main {
+  background: transparent !important;
+}
+
 /* Demo page white text override - only for text directly on green background */
 /* Target only the intro section, not content inside cards */
+body.demo-page .demo-page-content > div:first-child h1,
+body.demo-page .demo-page-content > div:first-child p,
 .demo-page-content > div:first-child h1,
-.demo-page-content > div:first-child p {
+.demo-page-content > div:first-child p,
+body.demo-page .demo-page-content > div:first-child h1.text-white,
+body.demo-page .demo-page-content > div:first-child p.text-white,
+body.demo-page .demo-page-content > div:first-child * {
+  color: white !important;
+}
+
+/* Override any conflicting styles for demo page intro */
+body.demo-page .demo-page-content > div:first-child h1.text-white,
+body.demo-page .demo-page-content > div:first-child p.text-white {
   color: white !important;
 }
 
