@@ -156,13 +156,37 @@ export default function ClaimsPage() {
     // Refresh claims list and update viewing claim if it's still open
     await fetchClaims()
     if (viewingClaim) {
+      // Fetch fresh claim data with denial reasons
       const { data: updatedClaim } = await supabase
         .from('claims')
         .select('*')
         .eq('id', viewingClaim.id)
         .single()
+      
       if (updatedClaim) {
-        setViewingClaim(updatedClaim)
+        // Also fetch denial reasons and doctor data for the updated claim
+        const { data: denialReasons, count } = await supabase
+          .from('denial_reasons')
+          .select('*')
+          .eq('claim_id', updatedClaim.id)
+          .order('date_recorded', { ascending: false })
+        
+        let doctor = null
+        if (updatedClaim.doctor_id) {
+          const { data: doctorData } = await supabase
+            .from('doctors')
+            .select('id, name, npi')
+            .eq('id', updatedClaim.doctor_id)
+            .single()
+          doctor = doctorData
+        }
+        
+        setViewingClaim({
+          ...updatedClaim,
+          denial_reasons_count: count || 0,
+          denial_reasons_data: denialReasons || [],
+          doctor: doctor,
+        })
       }
     }
   }

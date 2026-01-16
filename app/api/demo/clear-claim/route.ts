@@ -5,11 +5,11 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
 
-    // Find the DEMO12345 claim
+    // Find the 1738493 claim
     const { data: claim, error: claimError } = await supabase
       .from('claims')
       .select('id')
-      .eq('claim_number', 'DEMO12345')
+      .eq('claim_number', '1738493')
       .maybeSingle()
 
     if (claimError) {

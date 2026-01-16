@@ -9,17 +9,159 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { callId, conversationId } = body
 
-    // If conversationId is provided, try to end it via ElevenLabs API
-    if (conversationId) {
+    // Get conversation_id and call_sid from call record if not provided
+    let actualConversationId = conversationId
+    let callSid = null
+    if (callId) {
+      const { data: callRecord, error: fetchError } = await supabase
+        .from('calls')
+        .select('conversation_id, call_sid')
+        .eq('id', callId)
+        .single()
+
+      if (fetchError) {
+        return NextResponse.json(
+          { error: 'Failed to find call record', details: fetchError.message },
+          { status: 500 }
+        )
+      }
+
+      if (!actualConversationId) {
+        actualConversationId = callRecord?.conversation_id || null
+      }
+      callSid = callRecord?.call_sid || null
+    }
+
+    // Try to end the conversation via ElevenLabs API
+    if (actualConversationId) {
       const apiKey = process.env.ELEVENLABS_API_KEY
       if (apiKey) {
         try {
-          // Try to end the conversation via ElevenLabs API
-          // Note: ElevenLabs may not have a direct "end" endpoint, but we can try
-          // For now, we'll just update the database status
-          // If ElevenLabs adds an endpoint to end conversations, we can add it here
+          const headers = {
+            'xi-api-key': apiKey,
+            'Content-Type': 'application/json',
+          }
+
+          // Try multiple endpoints to end the conversation
+          let endedSuccessfully = false
+          const attempts = []
+
+          // Attempt 1: POST /end
+          try {
+            const postEndResponse = await fetch(
+              `${ELEVENLABS_API_BASE}/convai/conversations/${actualConversationId}/end`,
+              {
+                method: 'POST',
+                headers,
+              }
+            )
+            const postEndText = await postEndResponse.text().catch(() => '')
+            attempts.push(`POST /end: ${postEndResponse.status} - ${postEndText.substring(0, 200)}`)
+            if (postEndResponse.ok) {
+              console.log(`[END-CALL] ✅ Successfully ended conversation ${actualConversationId} via POST /end`)
+              endedSuccessfully = true
+            }
+          } catch (e) {
+            attempts.push(`POST /end: Error - ${e}`)
+          }
+
+          // Attempt 2: DELETE conversation
+          if (!endedSuccessfully) {
+            try {
+              const deleteResponse = await fetch(
+                `${ELEVENLABS_API_BASE}/convai/conversations/${actualConversationId}`,
+                {
+                  method: 'DELETE',
+                  headers,
+                }
+              )
+              const deleteText = await deleteResponse.text().catch(() => '')
+              attempts.push(`DELETE: ${deleteResponse.status} - ${deleteText.substring(0, 200)}`)
+              if (deleteResponse.ok) {
+                console.log(`[END-CALL] ✅ Successfully ended conversation ${actualConversationId} via DELETE`)
+                endedSuccessfully = true
+              } else if (deleteResponse.status === 404) {
+                console.log(`[END-CALL] Conversation ${actualConversationId} not found (may already be ended)`)
+                endedSuccessfully = true // Consider 404 as success (already ended)
+              }
+            } catch (e) {
+              attempts.push(`DELETE: Error - ${e}`)
+            }
+          }
+
+          // Attempt 3: PATCH with status update
+          if (!endedSuccessfully) {
+            try {
+              const patchResponse = await fetch(
+                `${ELEVENLABS_API_BASE}/convai/conversations/${actualConversationId}`,
+                {
+                  method: 'PATCH',
+                  headers,
+                  body: JSON.stringify({ status: 'ended', action: 'end' }),
+                }
+              )
+              const patchText = await patchResponse.text().catch(() => '')
+              attempts.push(`PATCH: ${patchResponse.status} - ${patchText.substring(0, 200)}`)
+              if (patchResponse.ok) {
+                console.log(`[END-CALL] ✅ Successfully ended conversation ${actualConversationId} via PATCH`)
+                endedSuccessfully = true
+              }
+            } catch (e) {
+              attempts.push(`PATCH: Error - ${e}`)
+            }
+          }
+
+          // Attempt 4: POST to hangup endpoint
+          if (!endedSuccessfully) {
+            try {
+              const hangupResponse = await fetch(
+                `${ELEVENLABS_API_BASE}/convai/conversations/${actualConversationId}/hangup`,
+                {
+                  method: 'POST',
+                  headers,
+                }
+              )
+              const hangupText = await hangupResponse.text().catch(() => '')
+              attempts.push(`POST /hangup: ${hangupResponse.status} - ${hangupText.substring(0, 200)}`)
+              if (hangupResponse.ok) {
+                console.log(`[END-CALL] ✅ Successfully ended conversation ${actualConversationId} via POST /hangup`)
+                endedSuccessfully = true
+              }
+            } catch (e) {
+              attempts.push(`POST /hangup: Error - ${e}`)
+            }
+          }
+
+          // Attempt 5: If we have call_sid, try Twilio-specific endpoint
+          if (!endedSuccessfully && callSid) {
+            try {
+              const twilioEndResponse = await fetch(
+                `${ELEVENLABS_API_BASE}/convai/twilio/calls/${callSid}/end`,
+                {
+                  method: 'POST',
+                  headers,
+                }
+              )
+              const twilioText = await twilioEndResponse.text().catch(() => '')
+              attempts.push(`POST /twilio/calls/${callSid}/end: ${twilioEndResponse.status} - ${twilioText.substring(0, 200)}`)
+              if (twilioEndResponse.ok) {
+                console.log(`[END-CALL] ✅ Successfully ended call ${callSid} via Twilio endpoint`)
+                endedSuccessfully = true
+              }
+            } catch (e) {
+              attempts.push(`Twilio endpoint: Error - ${e}`)
+            }
+          }
+
+          if (!endedSuccessfully) {
+            console.warn(`[END-CALL] ⚠️ Could not end conversation ${actualConversationId} via ElevenLabs API. Attempts:`, attempts)
+            // Log all attempts for debugging
+            attempts.forEach((attempt, idx) => {
+              console.warn(`[END-CALL] Attempt ${idx + 1}: ${attempt}`)
+            })
+          }
         } catch (apiError) {
-          console.warn('Could not end conversation via ElevenLabs API:', apiError)
+          console.warn('[END-CALL] Could not end conversation via ElevenLabs API:', apiError)
           // Continue anyway - we'll still mark it as completed in the database
         }
       }

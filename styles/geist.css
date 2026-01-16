@@ -543,6 +543,11 @@
   border-color: #666666; /* Dark grey border for disabled state */
 }
 
+/* Keep text-black color even when disabled */
+.geist-input.text-black:disabled {
+  color: #000000 !important;
+}
+
 /* Dark mode input - handled by CSS variables */
 
 /* ============================================

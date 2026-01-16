@@ -9,10 +9,60 @@ interface ExtractedData {
 }
 
 /**
- * Clean up a denial reason by removing conversational prefixes and extracting the core reason
+ * Check if a string is a valid denial reason (not a question, instruction, or meta-commentary)
  */
-function cleanDenialReason(reason: string): string {
-  let cleaned = reason.trim()
+function isValidDenialReason(reason: string): boolean {
+  const lowerReason = reason.toLowerCase().trim()
+  
+  // Filter out questions
+  if (lowerReason.startsWith('what') || 
+      lowerReason.startsWith('how') || 
+      lowerReason.startsWith('why') ||
+      lowerReason.startsWith('when') ||
+      lowerReason.startsWith('where') ||
+      lowerReason.startsWith('who') ||
+      lowerReason.includes('what specific steps') ||
+      lowerReason.includes('what steps') ||
+      lowerReason.includes('how to') ||
+      lowerReason.includes('how do') ||
+      lowerReason.includes('how can')) {
+    return false
+  }
+  
+  // Filter out instructions about steps/resolution
+  if (lowerReason.includes('steps we need to take') ||
+      lowerReason.includes('steps to take') ||
+      lowerReason.includes('to resolve') ||
+      lowerReason.includes('to fix') ||
+      lowerReason.includes('need to') ||
+      lowerReason.includes('should do') ||
+      lowerReason.includes('must do') ||
+      lowerReason.includes('next step')) {
+    return false
+  }
+  
+  // Filter out meta-commentary
+  if (lowerReason.includes('the first denial reason') ||
+      lowerReason.includes('the second denial reason') ||
+      lowerReason.includes('denial reason was') ||
+      lowerReason.includes('denial reason is') ||
+      lowerReason.match(/^(first|second|third|fourth|fifth)\s+(denial\s+)?reason/i)) {
+    return false
+  }
+  
+  // Must have some substantive content (at least 10 characters after cleaning)
+  if (lowerReason.length < 10) {
+    return false
+  }
+  
+  return true
+}
+
+/**
+ * Format a denial reason as a complete sentence
+ */
+function formatDenialReason(reason: string): string {
+  let formatted = reason.trim()
   
   // Remove common conversational prefixes (case-insensitive)
   const prefixes = [
@@ -35,88 +85,126 @@ function cleanDenialReason(reason: string): string {
     /^the denial reason was\s*/i,
     /^because\s*/i,
     /^due to\s*/i,
+    /^the\s+first\s+denial\s+reason\s+(?:was|is)\s+that\s*/i,
+    /^the\s+second\s+denial\s+reason\s+(?:was|is)\s+that\s*/i,
+    /^the\s+third\s+denial\s+reason\s+(?:was|is)\s+that\s*/i,
   ]
   
   for (const prefix of prefixes) {
-    cleaned = cleaned.replace(prefix, '')
+    formatted = formatted.replace(prefix, '')
   }
   
-  // Handle "there was no/is no/wasn't/isn't" -> "missing"
-  cleaned = cleaned.replace(/^there (?:was|is|wasn't|isn't) no\s+/i, 'missing ')
-  cleaned = cleaned.replace(/^there (?:was|is|wasn't|isn't)\s+/i, '')
-  cleaned = cleaned.replace(/^there's no\s+/i, 'missing ')
+  // Handle "there was no/is no/wasn't/isn't" -> "the claim was missing"
+  formatted = formatted.replace(/^there (?:was|is|wasn't|isn't) no\s+/i, 'the claim was missing ')
+  formatted = formatted.replace(/^there (?:was|is|wasn't|isn't)\s+/i, 'the claim ')
+  formatted = formatted.replace(/^there's no\s+/i, 'the claim was missing ')
   
-  // Handle "no [something] put on the record" -> "missing [something]"
-  cleaned = cleaned.replace(/^no\s+(.+?)\s+put on the record/i, 'missing $1')
-  cleaned = cleaned.replace(/^no\s+(.+?)\s+on the record/i, 'missing $1')
+  // Handle "no [something] put on the record" -> "the claim was missing [something]"
+  formatted = formatted.replace(/^no\s+(.+?)\s+put on the record/i, 'the claim was missing $1')
+  formatted = formatted.replace(/^no\s+(.+?)\s+on the record/i, 'the claim was missing $1')
   
-  // Handle "wasn't [something]" -> "missing [something]"
-  cleaned = cleaned.replace(/^wasn't\s+/i, 'missing ')
-  cleaned = cleaned.replace(/^isn't\s+/i, 'missing ')
+  // Handle "wasn't [something]" -> "the claim was missing [something]"
+  formatted = formatted.replace(/^wasn't\s+/i, 'the claim was missing ')
+  formatted = formatted.replace(/^isn't\s+/i, 'the claim was missing ')
   
-  // Handle "was not [something]" -> "missing [something]"
-  cleaned = cleaned.replace(/^was not\s+/i, 'missing ')
-  cleaned = cleaned.replace(/^is not\s+/i, 'missing ')
+  // Handle "was not [something]" -> "the claim was missing [something]"
+  formatted = formatted.replace(/^was not\s+/i, 'the claim was missing ')
+  formatted = formatted.replace(/^is not\s+/i, 'the claim was missing ')
   
   // Remove trailing phrases that don't add value
-  cleaned = cleaned.replace(/\s+put on the record\.?$/i, '')
-  cleaned = cleaned.replace(/\s+on the record\.?$/i, '')
-  cleaned = cleaned.replace(/\s+in the system\.?$/i, '')
-  cleaned = cleaned.replace(/\s+in the file\.?$/i, '')
+  formatted = formatted.replace(/\s+put on the record\.?$/i, '')
+  formatted = formatted.replace(/\s+on the record\.?$/i, '')
+  formatted = formatted.replace(/\s+in the system\.?$/i, '')
+  formatted = formatted.replace(/\s+in the file\.?$/i, '')
   
-  // Capitalize first letter
-  cleaned = cleaned.trim()
-  if (cleaned.length > 0) {
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+  // Ensure it starts with "The claim" or similar if it doesn't already
+  if (!formatted.match(/^(the|it|this|that)/i)) {
+    formatted = 'the claim ' + formatted
   }
   
-  // Remove trailing punctuation and normalize whitespace
-  cleaned = cleaned.replace(/[.,!?;:]+$/, '').replace(/\s+/g, ' ').trim()
+  // Ensure it starts with "The" (capitalized)
+  formatted = formatted.trim()
+  if (formatted.length > 0) {
+    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1)
+  }
   
-  return cleaned
+  // Ensure it ends with proper punctuation
+  formatted = formatted.replace(/[.,!?;:]+$/, '')
+  formatted = formatted.trim() + '.'
+  
+  // Normalize whitespace
+  formatted = formatted.replace(/\s+/g, ' ').trim()
+  
+  return formatted
 }
 
 /**
  * Split a denial reason string that contains multiple reasons (separated by "and", "also", etc.)
+ * Returns formatted complete sentences for each reason
  */
 function splitMultipleReasons(reason: string, depth: number = 0): string[] {
   // Prevent infinite recursion
   if (depth > 5) {
-    const cleaned = cleanDenialReason(reason)
-    return cleaned.length > 5 ? [cleaned] : []
+    const formatted = formatDenialReason(reason)
+    return isValidDenialReason(formatted) ? [formatted] : []
   }
   
   const reasons: string[] = []
   
   // Patterns to split on: "and", "also", ", and", etc.
   // Order matters - more specific patterns first
+  // Look for patterns that indicate separate reasons, not just compound phrases
   const splitPatterns = [
-    /\s+and\s+the\s+/i,      // "and the" (e.g., "no service and the doctor wasn't listed")
-    /\s+and\s+there\s+/i,    // "and there" (e.g., "no service and there was no doctor")
-    /\s+and\s+(?:it|this|that)\s+/i,  // "and it/this/that"
-    /[,]\s+and\s+/i,         // ", and" (comma before and)
-    /\s+and\s+(?=[A-Z])/i,   // "and" followed by capital letter (new sentence)
-    /\s+and\s+/i,             // "and" (general case - check last)
-    /\s+also[,]?\s+/i,       // "also"
-    /[,]\s+also\s+/i,        // ", also"
+    // Split on "and the" - usually indicates a new reason
+    /\s+and\s+the\s+(?:claim\s+)?(?:was|is)\s+/i,
+    // Split on "and there" - usually indicates a new reason
+    /\s+and\s+there\s+(?:was|is)\s+/i,
+    // Split on "and the absence of" - new reason
+    /\s+and\s+the\s+absence\s+of\s+/i,
+    // Split on "and" followed by "missing" - new reason
+    /\s+and\s+(?:the\s+)?(?:claim\s+)?(?:was\s+)?missing\s+/i,
+    // Split on ", and" - comma before and usually indicates separate items
+    /[,]\s+and\s+/i,
+    // Split on "and" followed by capital letter (new sentence)
+    /\s+and\s+(?=[A-Z])/i,
+    // Split on "also" - usually indicates additional reason
+    /\s+also[,]?\s+(?:the\s+)?(?:claim\s+)?(?:was|is)\s+/i,
+    /[,]\s+also\s+/i,
+    // Split on "and" in general (but be more careful)
+    /\s+and\s+(?:the\s+)?(?:claim\s+)?(?:was|is|has|had)\s+/i,
   ]
   
-  let remaining = reason
+  let remaining = reason.trim()
   let splitFound = false
   
-  for (const pattern of splitPatterns) {
+  for (let patternIndex = 0; patternIndex < splitPatterns.length; patternIndex++) {
+    const pattern = splitPatterns[patternIndex]
     const parts = remaining.split(pattern)
     if (parts.length > 1) {
       splitFound = true
       // Recursively split each part in case there are more reasons
-      for (const part of parts) {
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i].trim()
+        
+        // If this isn't the first part, restore the connecting word context
+        // based on which pattern matched
+        if (i > 0) {
+          if (patternIndex === 0) { // "and the claim was/is"
+            part = 'the claim was ' + part
+          } else if (patternIndex === 1) { // "and there was/is"
+            part = 'there was ' + part
+          } else if (patternIndex === 3) { // "and missing"
+            part = 'the claim was missing ' + part
+          }
+        }
+        
         const subReasons = splitMultipleReasons(part, depth + 1)
         if (subReasons.length > 0) {
           reasons.push(...subReasons)
         } else {
-          const cleaned = cleanDenialReason(part)
-          if (cleaned.length > 5) {
-            reasons.push(cleaned)
+          const formatted = formatDenialReason(part)
+          if (isValidDenialReason(formatted)) {
+            reasons.push(formatted)
           }
         }
       }
@@ -124,11 +212,11 @@ function splitMultipleReasons(reason: string, depth: number = 0): string[] {
     }
   }
   
-  // If no split pattern found, return the cleaned single reason
+  // If no split pattern found, format as single reason
   if (!splitFound) {
-    const cleaned = cleanDenialReason(reason)
-    if (cleaned.length > 5) {
-      reasons.push(cleaned)
+    const formatted = formatDenialReason(reason)
+    if (isValidDenialReason(formatted)) {
+      reasons.push(formatted)
     }
   }
   
@@ -172,10 +260,10 @@ async function extractClaimInfoFromTranscript(
     for (const match of matches) {
       if (match[1]) {
         const rawReason = match[1].trim()
-        // Split if multiple reasons, otherwise clean single reason
+        // Split if multiple reasons, otherwise format single reason
         const splitReasons = splitMultipleReasons(rawReason)
         for (const reason of splitReasons) {
-          if (reason && reason.length > 5) {
+          if (reason && isValidDenialReason(reason)) {
             denialReasons.push(reason)
           }
         }
@@ -211,15 +299,15 @@ async function extractClaimInfoFromTranscript(
             if (reasonMatch && reasonMatch[1]) {
               const splitReasons = splitMultipleReasons(reasonMatch[1])
               for (const reason of splitReasons) {
-                if (reason && reason.length > 5) {
+                if (reason && isValidDenialReason(reason)) {
                   denialReasons.push(reason)
                 }
               }
             } else {
-              // Fallback: clean the whole sentence
+              // Fallback: format the whole sentence
               const splitReasons = splitMultipleReasons(trimmed)
               for (const reason of splitReasons) {
-                if (reason && reason.length > 5) {
+                if (reason && isValidDenialReason(reason)) {
                   denialReasons.push(reason)
                 }
               }
@@ -232,12 +320,22 @@ async function extractClaimInfoFromTranscript(
 
   // Normalize and deduplicate denial reasons (case-insensitive, normalize punctuation)
   const normalizeReason = (reason: string): string => {
-    return reason
+    let normalized = reason
       .trim()
       .toLowerCase()
       .replace(/[.,!?;:]+$/, '') // Remove trailing punctuation
+      .replace(/^[.,!?;:]+/, '') // Remove leading punctuation
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim()
+    
+    // Remove common articles at the start
+    normalized = normalized.replace(/^(the|a|an)\s+/i, '')
+    
+    // Remove common filler words/phrases
+    normalized = normalized.replace(/\b(was|is|were|are|been|being)\b/g, '')
+    normalized = normalized.replace(/\s+/g, ' ').trim()
+    
+    return normalized
   }
   
   const seen = new Set<string>()
@@ -245,11 +343,35 @@ async function extractClaimInfoFromTranscript(
   
   for (const reason of denialReasons) {
     const trimmed = reason.trim()
-    if (trimmed.length > 5) {
+    // Additional validation - ensure it's a valid denial reason
+    if (trimmed.length > 10 && isValidDenialReason(trimmed)) {
       const normalized = normalizeReason(trimmed)
-      if (!seen.has(normalized)) {
+      
+      // Check if this normalized reason is already in the set
+      // Also check if any existing reason is a substring of this one or vice versa
+      // (for cases like "length of service" vs "the length of service")
+      let isDuplicate = false
+      for (const existingNormalized of seen) {
+        if (normalized === existingNormalized) {
+          isDuplicate = true
+          break
+        }
+        // Check if one contains the other, but only if the length difference is small
+        // (to avoid false positives like "missing authorization" vs "missing authorization code")
+        if (normalized.length > 10 && existingNormalized.length > 10) {
+          const lengthDiff = Math.abs(normalized.length - existingNormalized.length)
+          if (lengthDiff <= 5) { // Only check if difference is small (e.g., "the " = 4 chars)
+            if (normalized.includes(existingNormalized) || existingNormalized.includes(normalized)) {
+              isDuplicate = true
+              break
+            }
+          }
+        }
+      }
+      
+      if (!isDuplicate) {
         seen.add(normalized)
-        uniqueReasons.push(trimmed) // Keep original capitalization
+        uniqueReasons.push(trimmed) // Keep original formatted sentence
       }
     }
   }
@@ -528,14 +650,24 @@ export async function processTranscriptForCall(
 
     // Create denial reason records in the new table
     if (extractedData.denial_reasons.length > 0) {
-      // Normalize function to check for duplicates
+      // Normalize function to check for duplicates (same as in extractClaimInfoFromTranscript)
       const normalizeReason = (reason: string): string => {
-        return reason
+        let normalized = reason
           .trim()
           .toLowerCase()
           .replace(/[.,!?;:]+$/, '') // Remove trailing punctuation
+          .replace(/^[.,!?;:]+/, '') // Remove leading punctuation
           .replace(/\s+/g, ' ') // Normalize whitespace
           .trim()
+        
+        // Remove common articles at the start
+        normalized = normalized.replace(/^(the|a|an)\s+/i, '')
+        
+        // Remove common filler words/phrases
+        normalized = normalized.replace(/\b(was|is|were|are|been|being)\b/g, '')
+        normalized = normalized.replace(/\s+/g, ' ').trim()
+        
+        return normalized
       }
       
       // Get existing denial reasons for this claim to avoid duplicates
@@ -549,10 +681,30 @@ export async function processTranscriptForCall(
       )
       
       // Insert new denial reasons that don't already exist
+      // Also check for substring matches to catch similar reasons
       const newDenialReasons = extractedData.denial_reasons
         .filter(reason => {
           const normalized = normalizeReason(reason)
-          return !existingNormalized.has(normalized)
+          
+          // Exact match check
+          if (existingNormalized.has(normalized)) {
+            return false
+          }
+          
+          // Substring match check - if one reason contains another, it's likely a duplicate
+          // But only if the length difference is small (to avoid false positives)
+          for (const existingNorm of existingNormalized) {
+            if (normalized.length > 10 && existingNorm.length > 10) {
+              const lengthDiff = Math.abs(normalized.length - existingNorm.length)
+              if (lengthDiff <= 5) { // Only check if difference is small (e.g., "the " = 4 chars)
+                if (normalized.includes(existingNorm) || existingNorm.includes(normalized)) {
+                  return false
+                }
+              }
+            }
+          }
+          
+          return true
         })
         .map(reason => {
           // Get today's date in YYYY-MM-DD format (local timezone) to avoid timezone conversion

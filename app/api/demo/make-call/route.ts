@@ -53,11 +53,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find or create DEMO12345 claim
+    // Find or create 1738493 claim
     let { data: claim, error: claimError } = await supabase
       .from('claims')
       .select('*')
-      .eq('claim_number', 'DEMO12345')
+      .eq('claim_number', '1738493')
       .maybeSingle()
 
     // If claim doesn't exist, create it
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
       const { data: newClaim, error: createClaimError } = await supabase
         .from('claims')
         .insert({
-          claim_number: 'DEMO12345',
+          claim_number: '1738493',
           patient_name: 'Demo Patient',
           insurance_provider: provider.name,
           provider_id: provider.id,
@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
       claim = newClaim
     }
 
-    // Delete all existing denial reasons for DEMO12345
+    // Delete all existing denial reasons for 1738493
     await supabase
       .from('denial_reasons')
       .delete()
@@ -352,7 +352,9 @@ export async function POST(request: NextRequest) {
     // The user will play the role of the insurance representative
     let dynamicPrompt = `# Personality
 
-You are a professional medical billing representative calling on behalf of a medical office.
+You are Russel, a professional medical billing representative calling on behalf of a medical office.
+
+Your name is Russel. When introducing yourself, say "My name is Russel" or "This is Russel calling" or similar variations.
 
 You are CURRENTLY ON THE PHONE CALL speaking directly with the insurance representative. You are NOT helping someone else make this call—YOU ARE THE AGENT ON THE CALL.
 
@@ -418,7 +420,7 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
     // Build DTMF rules
     const npiValue = doctor?.npi || '1234567890'
     const einValue = office?.ein || '123456789'
-    const patientIdValue = claim.patient_id || 'DEMO12345'
+    const patientIdValue = claim.patient_id || '1738493'
     
     const npiRule = '- If asked to enter your **NPI** or **NPI or tax ID** → use play_keypad_touch_tone with "' + npiValue + '"'
     const einRule = '- If asked to enter your **tax ID** or **EIN** → use play_keypad_touch_tone with "' + einValue + '"'
@@ -527,7 +529,7 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
 
     return NextResponse.json({
       success: true,
-      message: `Call initiated to ${toNumber} for demo claim DEMO12345`,
+      message: `Call initiated to ${toNumber} for demo claim 1738493`,
       call_sid: callResult.call_sid,
       conversation_id: conversationId,
       call_id: callRecord?.id,

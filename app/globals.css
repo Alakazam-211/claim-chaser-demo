@@ -277,6 +277,14 @@ button.text-white,
   margin-top: 0.25rem !important;
 }
 
+/* Prevent input fields from turning black when disabled */
+.geist-input:disabled.text-black,
+.geist-input.text-black:disabled {
+  color: #000000 !important;
+  background: #ffffff !important;
+  border-color: #666666 !important;
+}
+
 /* Remove shadows from info boxes and notification divs inside cards */
 .geist-card .bg-blue-50,
 .geist-card .bg-red-50,
@@ -302,6 +310,16 @@ button.text-white,
 .geist-card .bg-orange-50 *,
 .geist-card .bg-gray-50 * {
   text-shadow: none !important;
+}
+
+/* Ensure divs inside colored background boxes don't get white backgrounds */
+.geist-card .bg-blue-50 div,
+.geist-card .bg-red-50 div,
+.geist-card .bg-green-50 div,
+.geist-card .bg-yellow-50 div,
+.geist-card .bg-orange-50 div,
+.geist-card .bg-gray-50 div {
+  background: transparent !important;
 }
 
 /* Remove shadows from all text elements inside Geist cards */

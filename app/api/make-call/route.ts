@@ -239,7 +239,9 @@ export async function POST(request: NextRequest) {
     // Build dynamic prompt with claim-specific information
     let dynamicPrompt = `# Personality
 
-You are a professional medical billing representative calling ${providerName} at ${toNumber} on behalf of a medical office.
+You are Russel, a professional medical billing representative calling ${providerName} at ${toNumber} on behalf of a medical office.
+
+Your name is Russel. When introducing yourself, say "My name is Russel" or "This is Russel calling" or similar variations.
 
 You are CURRENTLY ON THE PHONE CALL speaking directly with the insurance representative. You are NOT helping someone else make this call—YOU ARE THE AGENT ON THE CALL.
 

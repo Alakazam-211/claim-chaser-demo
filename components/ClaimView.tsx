@@ -482,8 +482,9 @@ export default function ClaimView({ claim, onClose, onEdit, onUpdate }: ClaimVie
       await fetchDenialReasons()
       
       // Refresh the parent component's claim list if callback provided
+      // This will automatically refresh the claims list on the page
       if (onUpdate) {
-        onUpdate()
+        await onUpdate()
       }
     } catch (error) {
       console.error('Error adding denial reason:', error)
@@ -511,8 +512,9 @@ export default function ClaimView({ claim, onClose, onEdit, onUpdate }: ClaimVie
       await fetchDenialReasons()
       setEditingDenialReason(null)
       
+      // Refresh the parent component's claim list
       if (onUpdate) {
-        onUpdate()
+        await onUpdate()
       }
     } catch (error) {
       console.error('Error updating denial reason:', error)
@@ -536,13 +538,41 @@ export default function ClaimView({ claim, onClose, onEdit, onUpdate }: ClaimVie
       await fetchDenialReasons()
       setEditingDenialReason(null)
       
+      // Refresh the parent component's claim list
       if (onUpdate) {
-        onUpdate()
+        await onUpdate()
       }
     } catch (error) {
       console.error('Error deleting denial reason:', error)
       alert(error instanceof Error ? error.message : 'Failed to delete denial reason')
       throw error
+    }
+  }
+
+  const handleDeleteDenialReasonDirect = async (denialReason: DenialReason) => {
+    if (!confirm('Are you sure you want to delete this denial reason? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/denial-reasons/${denialReason.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete denial reason')
+      }
+
+      await fetchDenialReasons()
+      
+      // Refresh the parent component's claim list
+      if (onUpdate) {
+        await onUpdate()
+      }
+    } catch (error) {
+      console.error('Error deleting denial reason:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete denial reason')
     }
   }
 
@@ -877,6 +907,13 @@ export default function ClaimView({ claim, onClose, onEdit, onUpdate }: ClaimVie
                             className="text-xs !bg-[#1e7145] !text-white !border-none"
                           >
                             Edit
+                          </GeistButton>
+                          <GeistButton
+                            variant="outline"
+                            onClick={() => handleDeleteDenialReasonDirect(dr)}
+                            className="text-xs !bg-red-600 !text-white !border-none hover:!bg-red-700"
+                          >
+                            Delete
                           </GeistButton>
                         </div>
                       </div>

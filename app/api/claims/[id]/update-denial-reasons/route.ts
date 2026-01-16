@@ -2,10 +2,60 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Clean up a denial reason by removing conversational prefixes and extracting the core reason
+ * Check if a string is a valid denial reason (not a question, instruction, or meta-commentary)
  */
-function cleanDenialReason(reason: string): string {
-  let cleaned = reason.trim()
+function isValidDenialReason(reason: string): boolean {
+  const lowerReason = reason.toLowerCase().trim()
+  
+  // Filter out questions
+  if (lowerReason.startsWith('what') || 
+      lowerReason.startsWith('how') || 
+      lowerReason.startsWith('why') ||
+      lowerReason.startsWith('when') ||
+      lowerReason.startsWith('where') ||
+      lowerReason.startsWith('who') ||
+      lowerReason.includes('what specific steps') ||
+      lowerReason.includes('what steps') ||
+      lowerReason.includes('how to') ||
+      lowerReason.includes('how do') ||
+      lowerReason.includes('how can')) {
+    return false
+  }
+  
+  // Filter out instructions about steps/resolution
+  if (lowerReason.includes('steps we need to take') ||
+      lowerReason.includes('steps to take') ||
+      lowerReason.includes('to resolve') ||
+      lowerReason.includes('to fix') ||
+      lowerReason.includes('need to') ||
+      lowerReason.includes('should do') ||
+      lowerReason.includes('must do') ||
+      lowerReason.includes('next step')) {
+    return false
+  }
+  
+  // Filter out meta-commentary
+  if (lowerReason.includes('the first denial reason') ||
+      lowerReason.includes('the second denial reason') ||
+      lowerReason.includes('denial reason was') ||
+      lowerReason.includes('denial reason is') ||
+      lowerReason.match(/^(first|second|third|fourth|fifth)\s+(denial\s+)?reason/i)) {
+    return false
+  }
+  
+  // Must have some substantive content (at least 10 characters after cleaning)
+  if (lowerReason.length < 10) {
+    return false
+  }
+  
+  return true
+}
+
+/**
+ * Format a denial reason as a complete sentence
+ */
+function formatDenialReason(reason: string): string {
+  let formatted = reason.trim()
   
   // Remove common conversational prefixes (case-insensitive)
   const prefixes = [
@@ -28,88 +78,126 @@ function cleanDenialReason(reason: string): string {
     /^the denial reason was\s*/i,
     /^because\s*/i,
     /^due to\s*/i,
+    /^the\s+first\s+denial\s+reason\s+(?:was|is)\s+that\s*/i,
+    /^the\s+second\s+denial\s+reason\s+(?:was|is)\s+that\s*/i,
+    /^the\s+third\s+denial\s+reason\s+(?:was|is)\s+that\s*/i,
   ]
   
   for (const prefix of prefixes) {
-    cleaned = cleaned.replace(prefix, '')
+    formatted = formatted.replace(prefix, '')
   }
   
-  // Handle "there was no/is no/wasn't/isn't" -> "missing"
-  cleaned = cleaned.replace(/^there (?:was|is|wasn't|isn't) no\s+/i, 'missing ')
-  cleaned = cleaned.replace(/^there (?:was|is|wasn't|isn't)\s+/i, '')
-  cleaned = cleaned.replace(/^there's no\s+/i, 'missing ')
+  // Handle "there was no/is no/wasn't/isn't" -> "the claim was missing"
+  formatted = formatted.replace(/^there (?:was|is|wasn't|isn't) no\s+/i, 'the claim was missing ')
+  formatted = formatted.replace(/^there (?:was|is|wasn't|isn't)\s+/i, 'the claim ')
+  formatted = formatted.replace(/^there's no\s+/i, 'the claim was missing ')
   
-  // Handle "no [something] put on the record" -> "missing [something]"
-  cleaned = cleaned.replace(/^no\s+(.+?)\s+put on the record/i, 'missing $1')
-  cleaned = cleaned.replace(/^no\s+(.+?)\s+on the record/i, 'missing $1')
+  // Handle "no [something] put on the record" -> "the claim was missing [something]"
+  formatted = formatted.replace(/^no\s+(.+?)\s+put on the record/i, 'the claim was missing $1')
+  formatted = formatted.replace(/^no\s+(.+?)\s+on the record/i, 'the claim was missing $1')
   
-  // Handle "wasn't [something]" -> "missing [something]"
-  cleaned = cleaned.replace(/^wasn't\s+/i, 'missing ')
-  cleaned = cleaned.replace(/^isn't\s+/i, 'missing ')
+  // Handle "wasn't [something]" -> "the claim was missing [something]"
+  formatted = formatted.replace(/^wasn't\s+/i, 'the claim was missing ')
+  formatted = formatted.replace(/^isn't\s+/i, 'the claim was missing ')
   
-  // Handle "was not [something]" -> "missing [something]"
-  cleaned = cleaned.replace(/^was not\s+/i, 'missing ')
-  cleaned = cleaned.replace(/^is not\s+/i, 'missing ')
+  // Handle "was not [something]" -> "the claim was missing [something]"
+  formatted = formatted.replace(/^was not\s+/i, 'the claim was missing ')
+  formatted = formatted.replace(/^is not\s+/i, 'the claim was missing ')
   
   // Remove trailing phrases that don't add value
-  cleaned = cleaned.replace(/\s+put on the record\.?$/i, '')
-  cleaned = cleaned.replace(/\s+on the record\.?$/i, '')
-  cleaned = cleaned.replace(/\s+in the system\.?$/i, '')
-  cleaned = cleaned.replace(/\s+in the file\.?$/i, '')
+  formatted = formatted.replace(/\s+put on the record\.?$/i, '')
+  formatted = formatted.replace(/\s+on the record\.?$/i, '')
+  formatted = formatted.replace(/\s+in the system\.?$/i, '')
+  formatted = formatted.replace(/\s+in the file\.?$/i, '')
   
-  // Capitalize first letter
-  cleaned = cleaned.trim()
-  if (cleaned.length > 0) {
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+  // Ensure it starts with "The claim" or similar if it doesn't already
+  if (!formatted.match(/^(the|it|this|that)/i)) {
+    formatted = 'the claim ' + formatted
   }
   
-  // Remove trailing punctuation and normalize whitespace
-  cleaned = cleaned.replace(/[.,!?;:]+$/, '').replace(/\s+/g, ' ').trim()
+  // Ensure it starts with "The" (capitalized)
+  formatted = formatted.trim()
+  if (formatted.length > 0) {
+    formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1)
+  }
   
-  return cleaned
+  // Ensure it ends with proper punctuation
+  formatted = formatted.replace(/[.,!?;:]+$/, '')
+  formatted = formatted.trim() + '.'
+  
+  // Normalize whitespace
+  formatted = formatted.replace(/\s+/g, ' ').trim()
+  
+  return formatted
 }
 
 /**
  * Split a denial reason string that contains multiple reasons (separated by "and", "also", etc.)
+ * Returns formatted complete sentences for each reason
  */
 function splitMultipleReasons(reason: string, depth: number = 0): string[] {
   // Prevent infinite recursion
   if (depth > 5) {
-    const cleaned = cleanDenialReason(reason)
-    return cleaned.length > 5 ? [cleaned] : []
+    const formatted = formatDenialReason(reason)
+    return isValidDenialReason(formatted) ? [formatted] : []
   }
   
   const reasons: string[] = []
   
   // Patterns to split on: "and", "also", ", and", etc.
   // Order matters - more specific patterns first
+  // Look for patterns that indicate separate reasons, not just compound phrases
   const splitPatterns = [
-    /\s+and\s+the\s+/i,      // "and the" (e.g., "no service and the doctor wasn't listed")
-    /\s+and\s+there\s+/i,    // "and there" (e.g., "no service and there was no doctor")
-    /\s+and\s+(?:it|this|that)\s+/i,  // "and it/this/that"
-    /[,]\s+and\s+/i,         // ", and" (comma before and)
-    /\s+and\s+(?=[A-Z])/i,   // "and" followed by capital letter (new sentence)
-    /\s+and\s+/i,             // "and" (general case - check last)
-    /\s+also[,]?\s+/i,       // "also"
-    /[,]\s+also\s+/i,        // ", also"
+    // Split on "and the" - usually indicates a new reason
+    /\s+and\s+the\s+(?:claim\s+)?(?:was|is)\s+/i,
+    // Split on "and there" - usually indicates a new reason
+    /\s+and\s+there\s+(?:was|is)\s+/i,
+    // Split on "and the absence of" - new reason
+    /\s+and\s+the\s+absence\s+of\s+/i,
+    // Split on "and" followed by "missing" - new reason
+    /\s+and\s+(?:the\s+)?(?:claim\s+)?(?:was\s+)?missing\s+/i,
+    // Split on ", and" - comma before and usually indicates separate items
+    /[,]\s+and\s+/i,
+    // Split on "and" followed by capital letter (new sentence)
+    /\s+and\s+(?=[A-Z])/i,
+    // Split on "also" - usually indicates additional reason
+    /\s+also[,]?\s+(?:the\s+)?(?:claim\s+)?(?:was|is)\s+/i,
+    /[,]\s+also\s+/i,
+    // Split on "and" in general (but be more careful)
+    /\s+and\s+(?:the\s+)?(?:claim\s+)?(?:was|is|has|had)\s+/i,
   ]
   
-  let remaining = reason
+  let remaining = reason.trim()
   let splitFound = false
   
-  for (const pattern of splitPatterns) {
+  for (let patternIndex = 0; patternIndex < splitPatterns.length; patternIndex++) {
+    const pattern = splitPatterns[patternIndex]
     const parts = remaining.split(pattern)
     if (parts.length > 1) {
       splitFound = true
       // Recursively split each part in case there are more reasons
-      for (const part of parts) {
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i].trim()
+        
+        // If this isn't the first part, restore the connecting word context
+        // based on which pattern matched
+        if (i > 0) {
+          if (patternIndex === 0) { // "and the claim was/is"
+            part = 'the claim was ' + part
+          } else if (patternIndex === 1) { // "and there was/is"
+            part = 'there was ' + part
+          } else if (patternIndex === 3) { // "and missing"
+            part = 'the claim was missing ' + part
+          }
+        }
+        
         const subReasons = splitMultipleReasons(part, depth + 1)
         if (subReasons.length > 0) {
           reasons.push(...subReasons)
         } else {
-          const cleaned = cleanDenialReason(part)
-          if (cleaned.length > 5) {
-            reasons.push(cleaned)
+          const formatted = formatDenialReason(part)
+          if (isValidDenialReason(formatted)) {
+            reasons.push(formatted)
           }
         }
       }
@@ -117,11 +205,11 @@ function splitMultipleReasons(reason: string, depth: number = 0): string[] {
     }
   }
   
-  // If no split pattern found, return the cleaned single reason
+  // If no split pattern found, format as single reason
   if (!splitFound) {
-    const cleaned = cleanDenialReason(reason)
-    if (cleaned.length > 5) {
-      reasons.push(cleaned)
+    const formatted = formatDenialReason(reason)
+    if (isValidDenialReason(formatted)) {
+      reasons.push(formatted)
     }
   }
   
@@ -145,12 +233,15 @@ export async function POST(
       )
     }
 
-    // Clean and split denial reasons
+    // Format and split denial reasons into complete sentences
     const cleanedReasons = splitMultipleReasons(denial_reason)
     
-    if (cleanedReasons.length === 0) {
+    // Filter out any invalid reasons
+    const validReasons = cleanedReasons.filter(reason => isValidDenialReason(reason))
+    
+    if (validReasons.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid denial reason format' },
+        { error: 'Invalid denial reason format - no valid denial reasons found' },
         { status: 400 }
       )
     }
@@ -191,7 +282,7 @@ export async function POST(
     )
     
     // Filter out duplicates
-    const newReasons = cleanedReasons.filter(reason => {
+    const newReasons = validReasons.filter(reason => {
       const normalized = normalizeReason(reason)
       return !existingNormalized.has(normalized)
     })
