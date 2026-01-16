@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import GeistCard from '@/components/GeistCard'
 import GeistButton from '@/components/GeistButton'
 import { createClient } from '@/lib/supabase/client'
@@ -120,13 +120,29 @@ export default function DemoPage() {
   const [callStatus, setCallStatus] = useState<string | null>(null)
   const [activeCall, setActiveCall] = useState<ActiveCall | null>(null)
   const [currentDuration, setCurrentDuration] = useState<string>('00:00')
+  const [error, setError] = useState<string | null>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const supabase = createClient()
+  
+  // Initialize Supabase client with error handling
+  const supabase = useMemo(() => {
+    try {
+      return createClient()
+    } catch (err) {
+      console.error('Failed to initialize Supabase client:', err)
+      setError(err instanceof Error ? err.message : 'Failed to initialize database connection')
+      return null
+    }
+  }, [])
 
   // Fetch DEMO12345 claim on mount
   useEffect(() => {
-    fetchDemoClaim()
-  }, [])
+    if (supabase) {
+      fetchDemoClaim()
+    } else {
+      setLoading(false)
+      setError('Database connection not available. Please check environment variables.')
+    }
+  }, [supabase])
 
   // Poll for active call status
   useEffect(() => {
@@ -188,7 +204,14 @@ export default function DemoPage() {
   }, [activeCall, claim?.id])
 
   const fetchDemoClaim = async () => {
+    if (!supabase) {
+      setError('Database connection not available')
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
+    setError(null)
     try {
       const { data, error } = await supabase
         .from('claims')
@@ -197,7 +220,13 @@ export default function DemoPage() {
         .maybeSingle()
 
       if (error) {
-        console.error('Error fetching demo claim:', error)
+        console.error('Error fetching demo claim:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        setError(`Failed to fetch demo claim: ${error.message}`)
       } else {
         setClaim(data)
         if (data?.id) {
@@ -206,6 +235,7 @@ export default function DemoPage() {
       }
     } catch (error) {
       console.error('Error fetching demo claim:', error)
+      setError(`Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`)
     } finally {
       setLoading(false)
     }
@@ -454,6 +484,15 @@ export default function DemoPage() {
       <GeistCard variant="opaque" className="mb-6 !bg-[#f5f5f5]">
         <div className="p-6">
           <h2 className="text-2xl font-semibold text-dark mb-4">Demo Claim</h2>
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 font-medium">Error:</p>
+              <p className="text-red-600 text-sm mt-1">{error}</p>
+              <p className="text-red-500 text-xs mt-2">
+                Check browser console for more details. Make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in Vercel.
+              </p>
+            </div>
+          )}
           {loading ? (
             <div className="text-center py-8">
               <p className="text-gray-500">Loading claim...</p>
