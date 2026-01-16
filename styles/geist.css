@@ -1,0 +1,797 @@
+/**
+ * Geist Design System - Core Styles
+ * 
+ * Based on Vercel's official Geist design system - minimalist, high-contrast,
+ * and modern. Customized with green color scheme (#1e7145).
+ * 
+ * Official documentation: https://vercel.com/geist
+ */
+
+/* ============================================
+   DESIGN TOKENS
+   ============================================ */
+
+:root {
+  /* Primary Green Color Scheme */
+  --geist-primary: #1e7145;
+  --geist-primary-dark: #165832;
+  --geist-primary-light: #2a8a5a;
+  
+  /* Background Colors (Geist 10-color system) */
+  --geist-background-1: #f5f5f5;  /* Default page background (grey) */
+  --geist-background-2: #f5f5f5;  /* Secondary background */
+  
+  /* Component Backgrounds (Colors 1-3) */
+  --geist-color-1: #ffffff;       /* Default card background (white) */
+  --geist-color-2: #ffffff;        /* Hover background (white) */
+  --geist-color-3: #fafafa;        /* Active background */
+  
+  /* Borders (Colors 4-6) */
+  --geist-color-4: #eaeaea;       /* Default border */
+  --geist-color-5: #e5e5e5;        /* Hover border */
+  --geist-color-6: #d4d4d4;        /* Active border */
+  
+  /* High Contrast Backgrounds (Colors 7-8) - Using green for primary buttons */
+  --geist-color-7: #1e7145;       /* High contrast background (green) */
+  --geist-color-8: #165832;        /* Hover high contrast background (darker green) */
+  
+  /* Text and Icons (Colors 9-10) */
+  --geist-color-9: #666666;        /* Secondary text and icons */
+  --geist-color-10: #000000;       /* Primary text and icons */
+  
+  /* Legacy color variables for backward compatibility */
+  --geist-black: #000000;
+  --geist-white: #ffffff;
+  --geist-gray-50: #fafafa;
+  --geist-gray-100: #f5f5f5;
+  --geist-gray-200: #e5e5e5;
+  --geist-gray-300: #d4d4d4;
+  --geist-gray-400: #a3a3a3;
+  --geist-gray-500: #737373;
+  --geist-gray-600: #525252;
+  --geist-gray-700: #404040;
+  --geist-gray-800: #262626;
+  --geist-gray-900: #171717;
+  
+  /* Accent Colors */
+  --geist-blue: #0070f3;
+  --geist-blue-dark: #0051cc;
+  --geist-blue-light: #3291ff;
+  --geist-purple: #7928ca;
+  --geist-purple-dark: #5a1fa8;
+  --geist-purple-light: #9a4ed4;
+  
+  /* Background Colors (legacy) */
+  --geist-background: var(--geist-background-1);
+  --geist-background-dark: #000000;
+  --geist-background-subtle: var(--geist-background-2);
+  --geist-background-subtle-dark: #111111;
+  
+  /* Text Colors (legacy) */
+  --geist-foreground: var(--geist-color-10);
+  --geist-foreground-dark: #ffffff;
+  --geist-foreground-secondary: var(--geist-color-9);
+  --geist-foreground-secondary-dark: #888888;
+  
+  /* Border Colors (legacy) */
+  --geist-border: var(--geist-color-4);
+  --geist-border-dark: #333333;
+  --geist-border-hover: var(--geist-color-5);
+  --geist-border-hover-dark: #444444;
+  
+  /* Shadow System */
+  --geist-shadow-small: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --geist-shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --geist-shadow-large: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --geist-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Spacing Scale (4px base unit) */
+  --geist-space-1: 0.25rem;  /* 4px */
+  --geist-space-2: 0.5rem;   /* 8px */
+  --geist-space-3: 0.75rem;  /* 12px */
+  --geist-space-4: 1rem;     /* 16px */
+  --geist-space-5: 1.25rem;  /* 20px */
+  --geist-space-6: 1.5rem;   /* 24px */
+  --geist-space-8: 2rem;     /* 32px */
+  --geist-space-10: 2.5rem;  /* 40px */
+  --geist-space-12: 3rem;    /* 48px */
+  --geist-space-16: 4rem;    /* 64px */
+  --geist-space-20: 5rem;    /* 80px */
+  
+  /* Border Radius (Geist Materials) */
+  --geist-radius-base: 0.375rem;   /* 6px - base, small, tooltip */
+  --geist-radius-medium: 0.75rem;  /* 12px - medium, large, menu, modal */
+  --geist-radius-fullscreen: 1rem; /* 16px - fullscreen */
+  --geist-radius-full: 9999px;
+  
+  /* Typography - Geist Sans & Mono */
+  --geist-font-sans: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --geist-font-mono: 'Geist Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  
+  /* Transitions */
+  --geist-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --geist-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --geist-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Background Colors */
+    --geist-background-1: #000000;
+    --geist-background-2: #111111;
+    
+    /* Component Backgrounds */
+    --geist-color-1: #000000;
+    --geist-color-2: #111111;
+    --geist-color-3: #1a1a1a;
+    
+    /* Borders */
+    --geist-color-4: #333333;
+    --geist-color-5: #404040;
+    --geist-color-6: #525252;
+    
+    /* High Contrast Backgrounds - Keep green for primary buttons */
+    --geist-color-7: #1e7145;
+    --geist-color-8: #165832;
+    
+    /* Text and Icons */
+    --geist-color-9: #888888;
+    --geist-color-10: #ffffff;
+    
+    /* Legacy variables */
+    --geist-background: #000000;
+    --geist-background-subtle: #111111;
+    --geist-foreground: #ffffff;
+    --geist-foreground-secondary: #888888;
+    --geist-border: #333333;
+    --geist-border-hover: #444444;
+  }
+}
+
+/* ============================================
+   GEIST MATERIALS (Surface)
+   ============================================ */
+
+.material-base {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-base); /* 6px */
+  box-shadow: var(--geist-shadow-small);
+}
+
+.material-small {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-base); /* 6px */
+  box-shadow: var(--geist-shadow-medium);
+}
+
+.material-medium {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-medium); /* 12px */
+  box-shadow: var(--geist-shadow-medium);
+}
+
+.material-large {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-medium); /* 12px */
+  box-shadow: var(--geist-shadow-large);
+}
+
+/* ============================================
+   GEIST MATERIALS (Floating)
+   ============================================ */
+
+.material-tooltip {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-base); /* 6px */
+  box-shadow: var(--geist-shadow-small);
+}
+
+.material-menu {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-medium); /* 12px */
+  box-shadow: var(--geist-shadow-medium);
+}
+
+.material-modal {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-medium); /* 12px */
+  box-shadow: var(--geist-shadow-large);
+}
+
+.material-fullscreen {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-fullscreen); /* 16px */
+  box-shadow: var(--geist-shadow-xl);
+}
+
+/* ============================================
+   GEIST CARD (using Materials)
+   ============================================ */
+
+.geist-card {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-medium); /* 12px */
+  box-shadow: var(--geist-shadow-small);
+  transition: all var(--geist-transition-base);
+  color: #000000;
+}
+
+.geist-card:hover {
+  background: #ffffff;
+  border-color: var(--geist-color-5);
+  box-shadow: var(--geist-shadow-medium);
+  transform: translateY(-2px);
+}
+
+.geist-card-dark {
+  background: var(--geist-color-7);
+  border: 1px solid var(--geist-color-4);
+  color: var(--geist-color-10);
+}
+
+.geist-card-dark:hover {
+  background: var(--geist-color-8);
+  border-color: var(--geist-color-5);
+}
+
+.geist-card-subtle {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+}
+
+.geist-card-subtle:hover {
+  background: #ffffff;
+  border-color: var(--geist-color-5);
+}
+
+.geist-card-opaque {
+  background: #ffffff;
+  border: 1px solid var(--geist-color-4);
+  border-radius: var(--geist-radius-medium);
+  box-shadow: var(--geist-shadow-medium);
+  transition: all var(--geist-transition-base);
+}
+
+.geist-card-opaque:hover {
+  box-shadow: var(--geist-shadow-large);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   GEIST NAVIGATION
+   ============================================ */
+
+.geist-nav {
+  background: var(--geist-background);
+  border-bottom: 1px solid var(--geist-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all var(--geist-transition-base);
+}
+
+.geist-nav-scrolled {
+  box-shadow: var(--geist-shadow-small);
+}
+
+.geist-nav-dark {
+  background: var(--geist-primary);
+  border-bottom-color: transparent;
+  color: var(--geist-foreground-dark);
+}
+
+/* ============================================
+   GEIST BUTTON
+   ============================================ */
+
+.geist-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--geist-radius-base); /* 6px */
+  font-family: var(--geist-font-sans);
+  font-weight: 500;
+  font-size: 0.875rem; /* 14px - text-button-14 */
+  line-height: 1.25rem;
+  padding: 0.625rem 1.25rem;
+  transition: all var(--geist-transition-base);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  min-height: 44px;
+}
+
+.geist-button-primary {
+  background: var(--geist-color-7); /* Green primary color */
+  color: #ffffff;
+}
+
+.geist-button-primary:hover {
+  background: var(--geist-color-8); /* Darker green on hover */
+  transform: translateY(-1px);
+  box-shadow: var(--geist-shadow-medium);
+}
+
+.geist-button-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--geist-shadow-small);
+}
+
+.geist-button-secondary {
+  background: #ffffff; /* White background */
+  color: var(--geist-color-10);
+  border: 1px solid var(--geist-color-4);
+}
+
+.geist-button-secondary:hover {
+  background: #ffffff; /* White background on hover */
+  border-color: var(--geist-color-5);
+}
+
+.geist-button-outline {
+  background: transparent;
+  color: var(--geist-color-10);
+  border: 1px solid var(--geist-color-4);
+}
+
+.geist-button-outline:hover {
+  background: var(--geist-color-2);
+  border-color: var(--geist-color-5);
+}
+
+.geist-button-ghost {
+  background: transparent;
+  color: var(--geist-color-9); /* Secondary text */
+  border: none;
+}
+
+.geist-button-ghost:hover {
+  background: var(--geist-color-2);
+  color: var(--geist-color-10);
+}
+
+.geist-button-blue {
+  background: var(--geist-blue);
+  color: var(--geist-white);
+}
+
+.geist-button-blue:hover {
+  background: var(--geist-blue-dark);
+  box-shadow: 0 4px 12px rgba(0, 112, 243, 0.4);
+}
+
+/* Dark mode button variants - handled by CSS variables */
+
+/* ============================================
+   GEIST INPUT
+   ============================================ */
+
+.geist-input {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border-radius: var(--geist-radius-base); /* 6px */
+  border: 1px solid var(--geist-color-4);
+  background: #ffffff;
+  color: #000000 !important;
+  font-family: var(--geist-font-sans);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem;
+  transition: all var(--geist-transition-base);
+  outline: none;
+  min-height: 44px;
+}
+
+.geist-input option {
+  color: #000000;
+}
+
+.geist-input::placeholder {
+  color: var(--geist-color-9); /* Secondary text */
+}
+
+.geist-input:hover {
+  border-color: var(--geist-color-5);
+}
+
+.geist-input:focus {
+  border-color: var(--geist-primary); /* Green focus border */
+  box-shadow: 0 0 0 3px rgba(30, 113, 69, 0.1);
+}
+
+.geist-input:disabled {
+  background: var(--geist-color-2);
+  color: var(--geist-color-9);
+  cursor: not-allowed;
+  border-color: var(--geist-color-4);
+}
+
+/* Dark mode input - handled by CSS variables */
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--geist-background-1);
+  color: #000000;
+  font-family: var(--geist-font-sans);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--geist-primary);
+  text-decoration: none;
+  transition: color var(--geist-transition-fast);
+}
+
+a:hover {
+  color: var(--geist-primary-dark);
+}
+
+/* ============================================
+   GEIST TYPOGRAPHY
+   ============================================ */
+
+/* Headings */
+.text-heading-72 {
+  font-family: var(--geist-font-sans);
+  font-size: 4.5rem; /* 72px */
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.text-heading-64 {
+  font-family: var(--geist-font-sans);
+  font-size: 4rem; /* 64px */
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.text-heading-56 {
+  font-family: var(--geist-font-sans);
+  font-size: 3.5rem; /* 56px */
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.text-heading-48 {
+  font-family: var(--geist-font-sans);
+  font-size: 3rem; /* 48px */
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.text-heading-40 {
+  font-family: var(--geist-font-sans);
+  font-size: 2.5rem; /* 40px */
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.text-heading-32 {
+  font-family: var(--geist-font-sans);
+  font-size: 2rem; /* 32px */
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.text-heading-32 strong {
+  font-weight: 700;
+}
+
+.text-heading-24 {
+  font-family: var(--geist-font-sans);
+  font-size: 1.5rem; /* 24px */
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.text-heading-24 strong {
+  font-weight: 700;
+}
+
+.text-heading-20 {
+  font-family: var(--geist-font-sans);
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.text-heading-20 strong {
+  font-weight: 700;
+}
+
+.text-heading-16 {
+  font-family: var(--geist-font-sans);
+  font-size: 1rem; /* 16px */
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.text-heading-16 strong {
+  font-weight: 700;
+}
+
+.text-heading-14 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+/* Buttons */
+.text-button-16 {
+  font-family: var(--geist-font-sans);
+  font-size: 1rem; /* 16px */
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.text-button-14 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.text-button-12 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Labels */
+.text-label-20 {
+  font-family: var(--geist-font-sans);
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-label-18 {
+  font-family: var(--geist-font-sans);
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-label-16 {
+  font-family: var(--geist-font-sans);
+  font-size: 1rem; /* 16px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-label-16 strong {
+  font-weight: 600;
+}
+
+.text-label-14 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-label-14 strong {
+  font-weight: 600;
+}
+
+.text-label-14-mono {
+  font-family: var(--geist-font-mono);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-label-13 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-label-13 strong {
+  font-weight: 600;
+}
+
+.text-label-13-mono {
+  font-family: var(--geist-font-mono);
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-label-12 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.6;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.text-label-12 strong {
+  font-weight: 600;
+}
+
+.text-label-12-mono {
+  font-family: var(--geist-font-mono);
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* Copy */
+.text-copy-24 {
+  font-family: var(--geist-font-sans);
+  font-size: 1.5rem; /* 24px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-copy-24 strong {
+  font-weight: 600;
+}
+
+.text-copy-20 {
+  font-family: var(--geist-font-sans);
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-copy-20 strong {
+  font-weight: 600;
+}
+
+.text-copy-18 {
+  font-family: var(--geist-font-sans);
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-copy-18 strong {
+  font-weight: 600;
+}
+
+.text-copy-16 {
+  font-family: var(--geist-font-sans);
+  font-size: 1rem; /* 16px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-copy-16 strong {
+  font-weight: 600;
+}
+
+.text-copy-14 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-copy-14 strong {
+  font-weight: 600;
+}
+
+.text-copy-13 {
+  font-family: var(--geist-font-sans);
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.text-copy-13-mono {
+  font-family: var(--geist-font-mono);
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.geist-text-gradient {
+  background: linear-gradient(180deg, var(--geist-color-10) 0%, var(--geist-color-9) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.geist-text-gradient-blue {
+  background: linear-gradient(180deg, var(--geist-blue) 0%, var(--geist-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.geist-divider {
+  height: 1px;
+  background: var(--geist-color-4);
+  border: none;
+  margin: var(--geist-space-8) 0;
+}
+
+/* ============================================
+   RESPONSIVE & MOBILE OPTIMIZATIONS
+   ============================================ */
+
+@media (max-width: 640px) {
+  /* Minimum touch target size (44x44px) */
+  button, a, input, textarea, select {
+    min-height: 44px;
+  }
+  
+  /* Improve text readability */
+  body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Prevent horizontal scroll */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  .geist-button {
+    width: 100%;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Remove hover effects on touch devices */
+  .geist-card:hover,
+  .geist-button:hover {
+    transform: none;
+  }
+}
+

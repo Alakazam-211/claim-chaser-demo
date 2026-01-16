@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "../styles/geist.css";
+
+body {
+  color: #000000;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Ensure text elements inherit black by default, but allow Tailwind classes to override */
+p, h1, h2, h3, h4, h5, h6, span, div, td, th, label, li {
+  color: inherit;
+}
+
+/* Navigation should keep white text - ensure Tailwind text-white classes work */
+nav .text-white,
+nav [class*="text-white"],
+.geist-nav .text-white,
+.geist-nav [class*="text-white"] {
+  color: white !important;
+}
+
