@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       if (!provider) {
-        const { data: newProvider } = await supabase
+        const { data: newProvider, error: providerError } = await supabase
           .from('providers')
           .insert({
             name: 'Demo Insurance Provider',
@@ -78,7 +78,23 @@ export async function POST(request: NextRequest) {
           })
           .select()
           .single()
+        
+        if (providerError || !newProvider) {
+          console.error('Error creating demo provider:', providerError)
+          return NextResponse.json(
+            { error: 'Failed to create demo provider' },
+            { status: 500 }
+          )
+        }
         provider = newProvider
+      }
+
+      // Ensure provider is not null (TypeScript guard)
+      if (!provider) {
+        return NextResponse.json(
+          { error: 'Failed to get or create demo provider' },
+          { status: 500 }
+        )
       }
 
       // Get or create a demo office
@@ -112,6 +128,14 @@ export async function POST(request: NextRequest) {
         office = newOffice
       }
 
+      // Ensure office is not null (TypeScript guard)
+      if (!office) {
+        return NextResponse.json(
+          { error: 'Failed to get or create demo office' },
+          { status: 500 }
+        )
+      }
+
       // Get or create a demo doctor
       let { data: doctor } = await supabase
         .from('doctors')
@@ -138,6 +162,14 @@ export async function POST(request: NextRequest) {
           )
         }
         doctor = newDoctor
+      }
+
+      // Ensure doctor is not null (TypeScript guard)
+      if (!doctor) {
+        return NextResponse.json(
+          { error: 'Failed to get or create demo doctor' },
+          { status: 500 }
+        )
       }
 
       // Create the demo claim
