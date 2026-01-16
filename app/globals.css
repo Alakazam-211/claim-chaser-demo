@@ -8,7 +8,8 @@ body {
 }
 
 /* Demo page green background override */
-body:has(main[data-demo="true"]) {
+body:has(main[data-demo="true"]),
+body.demo-page {
   background: #1e7145 !important;
 }
 

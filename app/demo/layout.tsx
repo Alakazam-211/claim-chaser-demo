@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import '../globals.css'
 import Navigation from '@/components/Navigation'
+import DemoBodyStyle from './DemoBodyStyle'
 
 export const metadata: Metadata = {
   title: 'Claim Chaser Demo',
@@ -22,6 +23,7 @@ export default function DemoLayout({
 
   return (
     <>
+      <DemoBodyStyle />
       <Navigation 
         logo="/claim-chaser-green.png"
         logoAlt="Claim Chaser"
