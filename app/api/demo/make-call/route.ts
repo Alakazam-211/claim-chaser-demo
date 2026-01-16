@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       if (!office) {
-        const { data: newOffice } = await supabase
+        const { data: newOffice, error: officeError } = await supabase
           .from('offices')
           .insert({
             name: 'Demo Medical Office',
@@ -101,6 +101,14 @@ export async function POST(request: NextRequest) {
           })
           .select()
           .single()
+        
+        if (officeError || !newOffice) {
+          console.error('Error creating demo office:', officeError)
+          return NextResponse.json(
+            { error: 'Failed to create demo office' },
+            { status: 500 }
+          )
+        }
         office = newOffice
       }
 
@@ -112,7 +120,7 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       if (!doctor) {
-        const { data: newDoctor } = await supabase
+        const { data: newDoctor, error: doctorError } = await supabase
           .from('doctors')
           .insert({
             name: 'Dr. Demo Doctor',
@@ -121,6 +129,14 @@ export async function POST(request: NextRequest) {
           })
           .select()
           .single()
+        
+        if (doctorError || !newDoctor) {
+          console.error('Error creating demo doctor:', doctorError)
+          return NextResponse.json(
+            { error: 'Failed to create demo doctor' },
+            { status: 500 }
+          )
+        }
         doctor = newDoctor
       }
 
