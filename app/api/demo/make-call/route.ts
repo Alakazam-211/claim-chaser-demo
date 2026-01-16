@@ -236,9 +236,18 @@ export async function POST(request: NextRequest) {
     )
 
     if (!agentsResponse.ok) {
+      const errorText = await agentsResponse.text()
+      let errorMessage = 'Failed to fetch agents from ElevenLabs'
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = `ElevenLabs API Error: ${errorJson.detail?.message || errorJson.message || errorText}`
+      } catch {
+        errorMessage = `ElevenLabs API Error (${agentsResponse.status}): ${errorText}`
+      }
+      console.error('ElevenLabs agents fetch error:', errorMessage)
       return NextResponse.json(
-        { error: 'Failed to fetch agents from ElevenLabs' },
-        { status: 500 }
+        { error: errorMessage },
+        { status: agentsResponse.status || 500 }
       )
     }
 
@@ -266,9 +275,18 @@ export async function POST(request: NextRequest) {
     )
 
     if (!phoneNumbersResponse.ok) {
+      const errorText = await phoneNumbersResponse.text()
+      let errorMessage = 'Failed to fetch phone numbers from ElevenLabs'
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = `ElevenLabs API Error: ${errorJson.detail?.message || errorJson.message || errorText}`
+      } catch {
+        errorMessage = `ElevenLabs API Error (${phoneNumbersResponse.status}): ${errorText}`
+      }
+      console.error('ElevenLabs phone numbers fetch error:', errorMessage)
       return NextResponse.json(
-        { error: 'Failed to fetch phone numbers from ElevenLabs' },
-        { status: 500 }
+        { error: errorMessage },
+        { status: phoneNumbersResponse.status || 500 }
       )
     }
 
@@ -425,7 +443,14 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
 
     if (!updatePromptResponse.ok) {
       const errorText = await updatePromptResponse.text()
-      console.error('Failed to update agent prompt:', errorText)
+      let errorMessage = 'Failed to update agent prompt'
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = `ElevenLabs API Error: ${errorJson.detail?.message || errorJson.message || errorText}`
+      } catch {
+        errorMessage = `ElevenLabs API Error (${updatePromptResponse.status}): ${errorText}`
+      }
+      console.error('Failed to update agent prompt:', errorMessage)
       // Continue anyway - the call might still work with the existing prompt
     }
 
@@ -445,9 +470,17 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
 
     if (!callResponse.ok) {
       const errorText = await callResponse.text()
+      let errorMessage = 'Failed to initiate call'
+      try {
+        const errorJson = JSON.parse(errorText)
+        errorMessage = `ElevenLabs API Error: ${errorJson.detail?.message || errorJson.message || errorText}`
+      } catch {
+        errorMessage = `ElevenLabs API Error (${callResponse.status}): ${errorText}`
+      }
+      console.error('ElevenLabs outbound call error:', errorMessage)
       return NextResponse.json(
-        { error: `Failed to initiate call: ${errorText}` },
-        { status: callResponse.status }
+        { error: errorMessage },
+        { status: callResponse.status || 500 }
       )
     }
 
