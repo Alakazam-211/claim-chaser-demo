@@ -18,6 +18,16 @@ body.demo-page main {
   background: transparent !important;
 }
 
+/* Hide root navigation on demo page, but keep demo nav */
+body.demo-page nav:not(.demo-nav) {
+  display: none !important;
+}
+
+/* Ensure demo nav is visible and styled correctly */
+body.demo-page .demo-nav {
+  display: flex !important;
+}
+
 /* Demo page white text override - only for text directly on green background */
 /* Target only the intro section, not content inside cards */
 body.demo-page .demo-page-content > div:first-child h1,
