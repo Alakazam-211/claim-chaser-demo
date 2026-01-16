@@ -306,8 +306,8 @@ export default function DemoPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-dark mb-2">Claim Chaser Demo</h1>
-        <p className="text-gray-600">
+        <h1 className="text-4xl font-bold text-white mb-2">Claim Chaser Demo</h1>
+        <p className="text-white">
           Experience how AI Claim Chaser automatically calls insurance providers to get denial reasons.
           Enter your information below and we'll call you to demonstrate the system.
         </p>
@@ -316,10 +316,10 @@ export default function DemoPage() {
       {/* Contact Form */}
       <GeistCard variant="opaque" className="mb-6 !bg-[#f5f5f5]">
         <div className="p-6">
-          <h2 className="text-2xl font-semibold text-dark mb-4">Your Information</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">Your Information</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-dark/70 mb-1">
+              <label className="block text-sm font-medium text-white/90 mb-1">
                 Name *
               </label>
               <input
@@ -333,7 +333,7 @@ export default function DemoPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-dark/70 mb-1">
+              <label className="block text-sm font-medium text-white/90 mb-1">
                 Phone Number *
               </label>
               <input
@@ -345,12 +345,12 @@ export default function DemoPage() {
                 placeholder="(555) 123-4567"
                 disabled={isCalling}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-white/80 mt-1">
                 We'll call this number to demonstrate the system
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium text-dark/70 mb-1">
+              <label className="block text-sm font-medium text-white/90 mb-1">
                 Email *
               </label>
               <input
@@ -403,15 +403,15 @@ export default function DemoPage() {
       {/* Demo Claim Display */}
       <GeistCard variant="opaque" className="mb-6 !bg-[#f5f5f5]">
         <div className="p-6">
-          <h2 className="text-2xl font-semibold text-dark mb-4">Demo Claim</h2>
+          <h2 className="text-2xl font-semibold text-white mb-4">Demo Claim</h2>
           {loading ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">Loading claim...</p>
+              <p className="text-white">Loading claim...</p>
             </div>
           ) : claim ? (
             <div className="space-y-4">
               <div className="flex items-center gap-3 mb-4">
-                <h3 className="text-xl font-semibold text-dark">Claim #{claim.claim_number}</h3>
+                <h3 className="text-xl font-semibold text-white">Claim #{claim.claim_number}</h3>
                 {claim.claim_status && (
                   <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(claim.claim_status)}`}>
                     {claim.claim_status}
@@ -421,41 +421,41 @@ export default function DemoPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-dark/70 mb-1">
+                  <label className="block text-sm font-medium text-white/90 mb-1">
                     Patient Name
                   </label>
-                  <p className="text-dark font-medium">{claim.patient_name}</p>
+                  <p className="text-white font-medium">{claim.patient_name}</p>
                 </div>
                 {claim.insurance_provider && (
                   <div>
-                    <label className="block text-sm font-medium text-dark/70 mb-1">
+                    <label className="block text-sm font-medium text-white/90 mb-1">
                       Insurance Provider
                     </label>
-                    <p className="text-dark font-medium">{claim.insurance_provider}</p>
+                    <p className="text-white font-medium">{claim.insurance_provider}</p>
                   </div>
                 )}
                 {claim.date_of_service && (
                   <div>
-                    <label className="block text-sm font-medium text-dark/70 mb-1">
+                    <label className="block text-sm font-medium text-white/90 mb-1">
                       Date of Service
                     </label>
-                    <p className="text-dark font-medium">{formatDate(claim.date_of_service)}</p>
+                    <p className="text-white font-medium">{formatDate(claim.date_of_service)}</p>
                   </div>
                 )}
                 {claim.billed_amount !== undefined && claim.billed_amount !== null && (
                   <div>
-                    <label className="block text-sm font-medium text-dark/70 mb-1">
+                    <label className="block text-sm font-medium text-white/90 mb-1">
                       Billed Amount
                     </label>
-                    <p className="text-dark font-medium text-xl">{formatCurrency(claim.billed_amount)}</p>
+                    <p className="text-white font-medium text-xl">{formatCurrency(claim.billed_amount)}</p>
                   </div>
                 )}
               </div>
 
               {/* Denial Reasons */}
               {denialReasons.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-semibold text-dark mb-3">Denial Reasons</h3>
+                <div className="mt-6 pt-6 border-t border-white/20">
+                  <h3 className="text-lg font-semibold text-white mb-3">Denial Reasons</h3>
                   <div className="space-y-3">
                     {denialReasons.map((dr) => (
                       <div
@@ -488,7 +488,7 @@ export default function DemoPage() {
               )}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-white">
               <p>Demo claim not found. It will be created when you make your first call.</p>
             </div>
           )}

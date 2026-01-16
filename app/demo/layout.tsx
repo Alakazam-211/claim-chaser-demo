@@ -22,7 +22,7 @@ export default function DemoLayout({
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-background">
+      <body className="min-h-screen bg-[#1e7145]">
         <Navigation 
           logo="/claim-chaser-green.png"
           logoAlt="Claim Chaser"
