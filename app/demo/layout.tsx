@@ -22,11 +22,6 @@ export default function DemoLayout({
 
   return (
     <>
-      <style jsx global>{`
-        body {
-          background-color: #1e7145 !important;
-        }
-      `}</style>
       <Navigation 
         logo="/claim-chaser-green.png"
         logoAlt="Claim Chaser"
