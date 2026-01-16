@@ -7,6 +7,11 @@ body {
   min-height: 100vh;
 }
 
+/* Demo page green background override */
+body:has(main[data-demo="true"]) {
+  background: #1e7145 !important;
+}
+
 /* Ensure text elements inherit black by default, but allow Tailwind classes to override */
 p, h1, h2, h3, h4, h5, h6, span, div, td, th, label, li {
   color: inherit;

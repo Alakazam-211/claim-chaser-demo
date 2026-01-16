@@ -21,19 +21,22 @@ export default function DemoLayout({
   const navLinks: { href: string; label: string }[] = []
 
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-[#1e7145]">
-        <Navigation 
-          logo="/claim-chaser-green.png"
-          logoAlt="Claim Chaser"
-          links={navLinks}
-          primaryColor="#1e7145"
-        />
-        <main className="container mx-auto px-4 pt-20 pb-8">
-          {children}
-        </main>
-      </body>
-    </html>
+    <>
+      <style jsx global>{`
+        body {
+          background-color: #1e7145 !important;
+        }
+      `}</style>
+      <Navigation 
+        logo="/claim-chaser-green.png"
+        logoAlt="Claim Chaser"
+        links={navLinks}
+        primaryColor="#1e7145"
+      />
+      <main className="container mx-auto px-4 pt-20 pb-8" data-demo="true">
+        {children}
+      </main>
+    </>
   )
 }
 
