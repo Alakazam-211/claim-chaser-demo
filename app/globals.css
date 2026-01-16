@@ -2,8 +2,8 @@
 @import "../styles/geist.css";
 
 body {
-  color: #000000;
-  background: #f5f5f5;
+  color: #ffffff;
+  background: #1e7145;
   min-height: 100vh;
 }
 
@@ -109,5 +109,198 @@ nav [class*="text-white"],
 .geist-nav .text-white,
 .geist-nav [class*="text-white"] {
   color: white !important;
+}
+
+/* Make all card text black for readability on green background */
+/* Exclude elements with Tailwind color utility classes */
+.geist-card,
+.geist-card h1:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card h2:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card h3:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card h4:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card h5:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card h6:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card p:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card span:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card div:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card label:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card td:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card th:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card li:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]),
+.geist-card *:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]):not(button) {
+  color: #000000;
+}
+
+/* Tailwind color classes will now override the black text rule since we removed !important */
+.geist-card span.text-red-700,
+.geist-card span.text-red-600,
+.geist-card span.text-red-500,
+.geist-card span.text-red-400,
+.geist-card span.text-red-300,
+.geist-card span.text-red-200,
+.geist-card span.text-red-100,
+.geist-card span.text-red-50,
+.geist-card span.text-orange-700,
+.geist-card span.text-orange-600,
+.geist-card span.text-orange-500,
+.geist-card span.text-orange-400,
+.geist-card span.text-orange-300,
+.geist-card span.text-orange-200,
+.geist-card span.text-green-700,
+.geist-card span.text-green-600,
+.geist-card span.text-green-500,
+.geist-card span.text-green-400,
+.geist-card span.text-green-300,
+.geist-card span.text-green-200,
+.geist-card span.text-yellow-700,
+.geist-card span.text-yellow-600,
+.geist-card span.text-yellow-500,
+.geist-card span.text-yellow-400,
+.geist-card span.text-yellow-300,
+.geist-card span.text-yellow-200,
+.geist-card span.text-blue-700,
+.geist-card span.text-blue-600,
+.geist-card span.text-blue-500,
+.geist-card span.text-blue-400,
+.geist-card span.text-blue-300,
+.geist-card span.text-blue-200,
+.geist-card span.text-purple-700,
+.geist-card span.text-purple-600,
+.geist-card span.text-purple-500,
+.geist-card span.text-purple-400,
+.geist-card span.text-purple-300,
+.geist-card span.text-purple-200,
+.geist-card span.text-pink-700,
+.geist-card span.text-pink-600,
+.geist-card span.text-pink-500,
+.geist-card span.text-pink-400,
+.geist-card span.text-pink-300,
+.geist-card span.text-pink-200,
+.geist-card span.text-gray-700,
+.geist-card span.text-gray-600,
+.geist-card span.text-gray-500,
+.geist-card span.text-gray-400,
+.geist-card span.text-gray-300,
+.geist-card span.text-gray-200,
+.geist-card .text-red-700,
+.geist-card .text-red-600,
+.geist-card .text-red-500,
+.geist-card .text-red-400,
+.geist-card .text-red-300,
+.geist-card .text-red-200,
+.geist-card .text-red-100,
+.geist-card .text-red-50,
+.geist-card .text-orange-700,
+.geist-card .text-orange-600,
+.geist-card .text-orange-500,
+.geist-card .text-orange-400,
+.geist-card .text-orange-300,
+.geist-card .text-orange-200,
+.geist-card .text-green-700,
+.geist-card .text-green-600,
+.geist-card .text-green-500,
+.geist-card .text-green-400,
+.geist-card .text-green-300,
+.geist-card .text-green-200,
+.geist-card .text-yellow-700,
+.geist-card .text-yellow-600,
+.geist-card .text-yellow-500,
+.geist-card .text-yellow-400,
+.geist-card .text-yellow-300,
+.geist-card .text-yellow-200,
+.geist-card .text-blue-700,
+.geist-card .text-blue-600,
+.geist-card .text-blue-500,
+.geist-card .text-blue-400,
+.geist-card .text-blue-300,
+.geist-card .text-blue-200,
+.geist-card .text-purple-700,
+.geist-card .text-purple-600,
+.geist-card .text-purple-500,
+.geist-card .text-purple-400,
+.geist-card .text-purple-300,
+.geist-card .text-purple-200,
+.geist-card .text-pink-700,
+.geist-card .text-pink-600,
+.geist-card .text-pink-500,
+.geist-card .text-pink-400,
+.geist-card .text-pink-300,
+.geist-card .text-pink-200,
+.geist-card .text-gray-700,
+.geist-card .text-gray-600,
+.geist-card .text-gray-500,
+.geist-card .text-gray-400,
+.geist-card .text-gray-300,
+.geist-card .text-gray-200 {
+  /* Remove the black color override - let Tailwind classes work */
+}
+
+
+/* Also handle white background divs that act as cards */
+.bg-white:not(nav):not(button),
+.bg-white h1:not(.text-white):not([class*="text-white"]),
+.bg-white h2:not(.text-white):not([class*="text-white"]),
+.bg-white h3:not(.text-white):not([class*="text-white"]),
+.bg-white h4:not(.text-white):not([class*="text-white"]),
+.bg-white h5:not(.text-white):not([class*="text-white"]),
+.bg-white h6:not(.text-white):not([class*="text-white"]),
+.bg-white p:not(.text-white):not([class*="text-white"]),
+.bg-white span:not(.text-white):not([class*="text-white"]),
+.bg-white div:not(.text-white):not([class*="text-white"]),
+.bg-white label:not(.text-white):not([class*="text-white"]),
+.bg-white td:not(.text-white):not([class*="text-white"]),
+.bg-white th:not(.text-white):not([class*="text-white"]),
+.bg-white li:not(.text-white):not([class*="text-white"]),
+.bg-white *:not(.text-white):not([class*="text-white"]):not(button) {
+  color: #000000 !important;
+}
+
+/* Ensure buttons with text-white class keep white text (like Make Call button) */
+button.text-white,
+[class*="text-white"],
+.geist-card button.text-white,
+.bg-white button.text-white,
+.geist-card .text-white,
+.bg-white .text-white {
+  color: white !important;
+}
+
+/* Ensure paragraphs in forms don't get card-like styling */
+.geist-card form p,
+.geist-card form p.text-xs,
+.geist-card form p.text-gray-500 {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin-top: 0.25rem !important;
+}
+
+/* Remove shadows from info boxes and notification divs inside cards */
+.geist-card .bg-blue-50,
+.geist-card .bg-red-50,
+.geist-card .bg-green-50,
+.geist-card .bg-yellow-50,
+.geist-card .bg-orange-50,
+.geist-card .bg-gray-50,
+.geist-card div.bg-blue-50,
+.geist-card div.bg-red-50,
+.geist-card div.bg-green-50,
+.geist-card div.bg-yellow-50,
+.geist-card div.bg-orange-50,
+.geist-card div.bg-gray-50 {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Ensure text inside info boxes doesn't have shadows */
+.geist-card .bg-blue-50 *,
+.geist-card .bg-red-50 *,
+.geist-card .bg-green-50 *,
+.geist-card .bg-yellow-50 *,
+.geist-card .bg-orange-50 *,
+.geist-card .bg-gray-50 * {
+  text-shadow: none !important;
 }
 

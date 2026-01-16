@@ -34,10 +34,9 @@ export default function RootLayout({
         <Navigation 
           logo="/claim-chaser-green.png"
           logoAlt="Claim Chaser"
-          links={navLinks}
           primaryColor="#1e7145"
         />
-        <main className="container mx-auto px-4 pt-20 pb-8">
+        <main className="container mx-auto px-4 pt-24 pb-24">
           {children}
         </main>
       </body>

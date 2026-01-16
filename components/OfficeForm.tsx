@@ -134,7 +134,7 @@ export default function OfficeForm({ office, onClose, onSave }: OfficeFormProps)
             </h2>
             <button
               onClick={onClose}
-              className="text-dark/70 hover:text-dark text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+              className="text-dark/70 hover:text-dark text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
             >
               ✕
             </button>

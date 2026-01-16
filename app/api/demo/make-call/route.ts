@@ -224,6 +224,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Log API key status (without exposing the actual key)
+    console.log('ElevenLabs API key configured:', apiKey ? `Yes (length: ${apiKey.length})` : 'No')
+
     const headers = {
       'xi-api-key': apiKey,
       'Content-Type': 'application/json',
@@ -244,9 +247,18 @@ export async function POST(request: NextRequest) {
       } catch {
         errorMessage = `ElevenLabs API Error (${agentsResponse.status}): ${errorText}`
       }
-      console.error('ElevenLabs agents fetch error:', errorMessage)
+      console.error('ElevenLabs API error:', {
+        status: agentsResponse.status,
+        statusText: agentsResponse.statusText,
+        error: errorText,
+        errorMessage
+      })
       return NextResponse.json(
-        { error: errorMessage },
+        { 
+          error: errorMessage,
+          details: errorText,
+          status: agentsResponse.status
+        },
         { status: agentsResponse.status || 500 }
       )
     }

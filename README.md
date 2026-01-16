@@ -45,7 +45,7 @@ NEXT_PUBLIC_APP_URL=https://app.claimchaser.ai
 npm run dev
 ```
 
-The application will be available at `http://localhost:3004`
+The application will be available at `http://localhost:3005` (demo runs on port 3005)
 
 ### 4. Database Schema
 

@@ -4,7 +4,7 @@
 
 1. **Navigate to the project directory:**
    ```bash
-   cd "/Users/Baden/AI Projects/Insurace Voice Project/claim-chaser-web"
+   cd "/Users/Baden/AI Projects/Claim Chaser Demo/claim-chaser-web"
    ```
 
 2. **Install dependencies (if not already done):**
@@ -27,7 +27,7 @@
    ```
 
 5. **Open your browser:**
-   Navigate to `http://localhost:3004`
+   Navigate to `http://localhost:3005` (demo runs on port 3005)
 
 ## Database Status
 

@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3004",
+    "dev": "next dev -p 3005",
     "dev:demo": "next dev -p 3005",
     "build": "next build",
-    "start": "next start -p 3004",
+    "start": "next start -p 3005",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "cron:local": "node scripts/run-cron-local.js"

@@ -206,7 +206,7 @@ const renderClaimCard = (claim: Claim, onEdit: (claim: Claim) => void, onDelete:
           </p>
           <div className="space-y-2">
             {claim.denial_reasons_data.map((dr) => (
-              <div key={dr.id} className="pl-3 border-l-2 border-white/20 text-sm">
+              <div key={dr.id} className="pl-3 border-l-2 border-gray-200 text-sm">
                 <p className="text-dark">{dr.denial_reason}</p>
                 <div className="flex gap-2 mt-1 text-xs text-dark/60">
                   <span className={`px-2 py-0.5 rounded ${getDenialReasonStatusColor(dr.status)}`}>

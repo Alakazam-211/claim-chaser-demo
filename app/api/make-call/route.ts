@@ -146,8 +146,18 @@ export async function POST(request: NextRequest) {
     )
 
     if (!agentsResponse.ok) {
+      const errorText = await agentsResponse.text()
+      console.error('ElevenLabs API error:', {
+        status: agentsResponse.status,
+        statusText: agentsResponse.statusText,
+        error: errorText
+      })
       return NextResponse.json(
-        { error: 'Failed to fetch agents from ElevenLabs' },
+        { 
+          error: 'Failed to fetch agents from ElevenLabs',
+          details: errorText,
+          status: agentsResponse.status
+        },
         { status: 500 }
       )
     }

@@ -86,7 +86,7 @@ const getStatusColor = (status?: string) => {
     case 'Complete':
       return 'text-green-600 bg-green-50 border-green-200'
     case 'Denied':
-      return 'text-red-600 bg-red-50 border-red-200'
+      return 'text-red-700 bg-red-50 border-red-300'
     case 'Pending Resubmission':
       return 'text-orange-600 bg-orange-50 border-orange-200'
     case 'Awaiting Acceptance':
@@ -207,7 +207,7 @@ function EditDenialReasonModal({ denialReason, onClose, onSave, onDelete }: Edit
             <label className="block text-sm font-medium text-dark mb-2">
               Denial Reason
             </label>
-            <p className="text-dark bg-white/10 p-3 rounded-lg">{denialReason.denial_reason}</p>
+            <p className="text-dark bg-gray-50 border border-gray-200 p-3 rounded-lg">{denialReason.denial_reason}</p>
           </div>
 
           <div className="mb-4">
@@ -724,14 +724,14 @@ export default function ClaimForm({ claim, onClose, onSave }: ClaimFormProps) {
             </div>
             <button
               onClick={onClose}
-              className="text-dark/70 hover:text-dark text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors"
+              className="text-dark/70 hover:text-dark text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
             >
               ✕
             </button>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 mb-6 pb-6 border-b border-white/20">
+          <div className="flex justify-end space-x-3 mb-6 pb-6 border-b border-gray-200">
             <GeistButton
               type="button"
               variant="primary"
@@ -1033,7 +1033,7 @@ export default function ClaimForm({ claim, onClose, onSave }: ClaimFormProps) {
                     {denialReasons.map((dr) => (
                       <div
                         key={dr.id}
-                        className="bg-white/10 rounded-lg p-4 border border-white/20"
+                        className="bg-gray-50 rounded-lg p-4 border border-gray-200"
                       >
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
@@ -1097,7 +1097,7 @@ export default function ClaimForm({ claim, onClose, onSave }: ClaimFormProps) {
                 )}
 
                 {showDenialInput && (
-                  <div className="bg-white/10 rounded-lg p-4 border border-white/20">
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <label className="block text-sm font-medium text-dark mb-2">
                       Denial Reason
                     </label>

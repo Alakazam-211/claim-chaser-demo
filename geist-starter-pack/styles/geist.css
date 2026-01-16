@@ -2,7 +2,7 @@
  * Geist Design System - Core Styles
  * 
  * Based on Vercel's official Geist design system - minimalist, high-contrast,
- * and modern. Customized with green color scheme (#1e7145).
+ * and modern. Import this into your globals.css or main CSS file.
  * 
  * Official documentation: https://vercel.com/geist
  */
@@ -12,28 +12,23 @@
    ============================================ */
 
 :root {
-  /* Primary Green Color Scheme */
-  --geist-primary: #1e7145;
-  --geist-primary-dark: #165832;
-  --geist-primary-light: #2a8a5a;
-  
   /* Background Colors (Geist 10-color system) */
-  --geist-background-1: #f5f5f5;  /* Default page background (grey) */
-  --geist-background-2: #f5f5f5;  /* Secondary background */
+  --geist-background-1: #ffffff;  /* Default element background */
+  --geist-background-2: #fafafa;  /* Secondary background */
   
   /* Component Backgrounds (Colors 1-3) */
-  --geist-color-1: #ffffff;       /* Default card background (white) */
-  --geist-color-2: #ffffff;        /* Hover background (white) */
-  --geist-color-3: #fafafa;        /* Active background */
+  --geist-color-1: #ffffff;       /* Default background */
+  --geist-color-2: #fafafa;        /* Hover background */
+  --geist-color-3: #f5f5f5;        /* Active background */
   
   /* Borders (Colors 4-6) */
   --geist-color-4: #eaeaea;       /* Default border */
   --geist-color-5: #e5e5e5;        /* Hover border */
   --geist-color-6: #d4d4d4;        /* Active border */
   
-  /* High Contrast Backgrounds (Colors 7-8) - Using green for primary buttons */
-  --geist-color-7: #1e7145;       /* High contrast background (green) */
-  --geist-color-8: #165832;        /* Hover high contrast background (darker green) */
+  /* High Contrast Backgrounds (Colors 7-8) */
+  --geist-color-7: #000000;       /* High contrast background */
+  --geist-color-8: #262626;        /* Hover high contrast background */
   
   /* Text and Icons (Colors 9-10) */
   --geist-color-9: #666666;        /* Secondary text and icons */
@@ -131,9 +126,9 @@
     --geist-color-5: #404040;
     --geist-color-6: #525252;
     
-    /* High Contrast Backgrounds - Keep green for primary buttons */
-    --geist-color-7: #1e7145;
-    --geist-color-8: #165832;
+    /* High Contrast Backgrounds */
+    --geist-color-7: #ffffff;
+    --geist-color-8: #f5f5f5;
     
     /* Text and Icons */
     --geist-color-9: #888888;
@@ -150,32 +145,36 @@
 }
 
 /* ============================================
+   GEIST CARD
+   ============================================ */
+
+/* ============================================
    GEIST MATERIALS (Surface)
    ============================================ */
 
 .material-base {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-base); /* 6px */
   box-shadow: var(--geist-shadow-small);
 }
 
 .material-small {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-base); /* 6px */
   box-shadow: var(--geist-shadow-medium);
 }
 
 .material-medium {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-medium); /* 12px */
   box-shadow: var(--geist-shadow-medium);
 }
 
 .material-large {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-medium); /* 12px */
   box-shadow: var(--geist-shadow-large);
@@ -186,28 +185,28 @@
    ============================================ */
 
 .material-tooltip {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-base); /* 6px */
   box-shadow: var(--geist-shadow-small);
 }
 
 .material-menu {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-medium); /* 12px */
   box-shadow: var(--geist-shadow-medium);
 }
 
 .material-modal {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-medium); /* 12px */
   box-shadow: var(--geist-shadow-large);
 }
 
 .material-fullscreen {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-fullscreen); /* 16px */
   box-shadow: var(--geist-shadow-xl);
@@ -218,121 +217,16 @@
    ============================================ */
 
 .geist-card {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border: 1px solid var(--geist-color-4);
   border-radius: var(--geist-radius-medium); /* 12px */
   box-shadow: var(--geist-shadow-small);
   transition: all var(--geist-transition-base);
-  color: #000000 !important;
+  color: var(--geist-color-10);
 }
-
-.geist-card *:not(.text-white):not([class*="text-white"]):not([class*="text-red"]):not([class*="text-orange"]):not([class*="text-green"]):not([class*="text-yellow"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-pink"]):not([class*="text-gray"]) {
-  color: #000000;
-}
-
-/* Explicitly allow Tailwind color utility classes to override black text - must come after the black text rule with higher specificity */
-.geist-card span.text-red-700,
-.geist-card span.text-red-600,
-.geist-card span.text-red-500,
-.geist-card span.text-red-400,
-.geist-card span.text-red-300,
-.geist-card span.text-red-200,
-.geist-card span.text-red-100,
-.geist-card span.text-red-50,
-.geist-card span.text-orange-700,
-.geist-card span.text-orange-600,
-.geist-card span.text-orange-500,
-.geist-card span.text-orange-400,
-.geist-card span.text-orange-300,
-.geist-card span.text-orange-200,
-.geist-card span.text-green-700,
-.geist-card span.text-green-600,
-.geist-card span.text-green-500,
-.geist-card span.text-green-400,
-.geist-card span.text-green-300,
-.geist-card span.text-green-200,
-.geist-card span.text-yellow-700,
-.geist-card span.text-yellow-600,
-.geist-card span.text-yellow-500,
-.geist-card span.text-yellow-400,
-.geist-card span.text-yellow-300,
-.geist-card span.text-yellow-200,
-.geist-card span.text-blue-700,
-.geist-card span.text-blue-600,
-.geist-card span.text-blue-500,
-.geist-card span.text-blue-400,
-.geist-card span.text-blue-300,
-.geist-card span.text-blue-200,
-.geist-card span.text-purple-700,
-.geist-card span.text-purple-600,
-.geist-card span.text-purple-500,
-.geist-card span.text-purple-400,
-.geist-card span.text-purple-300,
-.geist-card span.text-purple-200,
-.geist-card span.text-pink-700,
-.geist-card span.text-pink-600,
-.geist-card span.text-pink-500,
-.geist-card span.text-pink-400,
-.geist-card span.text-pink-300,
-.geist-card span.text-pink-200,
-.geist-card span.text-gray-700,
-.geist-card span.text-gray-600,
-.geist-card span.text-gray-500,
-.geist-card span.text-gray-400,
-.geist-card span.text-gray-300,
-.geist-card span.text-gray-200,
-.geist-card .text-red-700,
-.geist-card .text-red-600,
-.geist-card .text-red-500,
-.geist-card .text-red-400,
-.geist-card .text-red-300,
-.geist-card .text-red-200,
-.geist-card .text-red-100,
-.geist-card .text-red-50,
-.geist-card .text-orange-700,
-.geist-card .text-orange-600,
-.geist-card .text-orange-500,
-.geist-card .text-orange-400,
-.geist-card .text-orange-300,
-.geist-card .text-orange-200,
-.geist-card .text-green-700,
-.geist-card .text-green-600,
-.geist-card .text-green-500,
-.geist-card .text-green-400,
-.geist-card .text-green-300,
-.geist-card .text-green-200,
-.geist-card .text-yellow-700,
-.geist-card .text-yellow-600,
-.geist-card .text-yellow-500,
-.geist-card .text-yellow-400,
-.geist-card .text-yellow-300,
-.geist-card .text-yellow-200,
-.geist-card .text-blue-700,
-.geist-card .text-blue-600,
-.geist-card .text-blue-500,
-.geist-card .text-blue-400,
-.geist-card .text-blue-300,
-.geist-card .text-blue-200,
-.geist-card .text-purple-700,
-.geist-card .text-purple-600,
-.geist-card .text-purple-500,
-.geist-card .text-purple-400,
-.geist-card .text-purple-300,
-.geist-card .text-purple-200,
-.geist-card .text-pink-700,
-.geist-card .text-pink-600,
-.geist-card .text-pink-500,
-.geist-card .text-pink-400,
-.geist-card .text-pink-300,
-.geist-card .text-pink-200,
-.geist-card .text-gray-700,
-.geist-card .text-gray-600,
-.geist-card .text-gray-500,
-.geist-card .text-gray-400,
-.geist-card .text-gray-300,
 
 .geist-card:hover {
-  background: #ffffff;
+  background: var(--geist-color-2);
   border-color: var(--geist-color-5);
   box-shadow: var(--geist-shadow-medium);
   transform: translateY(-2px);
@@ -350,49 +244,13 @@
 }
 
 .geist-card-subtle {
-  background: #ffffff;
+  background: var(--geist-background-2);
   border: 1px solid var(--geist-color-4);
-  color: #000000 !important;
-}
-
-.geist-card-subtle *:not(.text-white):not([class*="text-white"]) {
-  color: #000000 !important;
 }
 
 .geist-card-subtle:hover {
-  background: #ffffff;
+  background: var(--geist-color-1);
   border-color: var(--geist-color-5);
-}
-
-.geist-card-opaque {
-  background: #ffffff;
-  border: 1px solid var(--geist-color-4);
-  border-radius: var(--geist-radius-medium);
-  box-shadow: var(--geist-shadow-medium);
-  transition: all var(--geist-transition-base);
-  color: #000000 !important;
-}
-
-.geist-card-opaque *:not(.text-white):not([class*="text-white"]) {
-  color: #000000 !important;
-}
-
-/* Ensure buttons with text-white class keep white text */
-.geist-card button.text-white,
-.geist-card .text-white,
-.geist-card [class*="text-white"],
-.geist-card-subtle button.text-white,
-.geist-card-subtle .text-white,
-.geist-card-subtle [class*="text-white"],
-.geist-card-opaque button.text-white,
-.geist-card-opaque .text-white,
-.geist-card-opaque [class*="text-white"] {
-  color: white !important;
-}
-
-.geist-card-opaque:hover {
-  box-shadow: var(--geist-shadow-large);
-  transform: translateY(-2px);
 }
 
 /* ============================================
@@ -412,8 +270,8 @@
 }
 
 .geist-nav-dark {
-  background: var(--geist-primary);
-  border-bottom-color: transparent;
+  background: var(--geist-background-dark);
+  border-bottom-color: var(--geist-border-dark);
   color: var(--geist-foreground-dark);
 }
 
@@ -440,12 +298,12 @@
 }
 
 .geist-button-primary {
-  background: var(--geist-color-7); /* Green primary color */
-  color: #ffffff;
+  background: var(--geist-color-7); /* High contrast background */
+  color: var(--geist-color-10);
 }
 
 .geist-button-primary:hover {
-  background: var(--geist-color-8); /* Darker green on hover */
+  background: var(--geist-color-8); /* Hover high contrast background */
   transform: translateY(-1px);
   box-shadow: var(--geist-shadow-medium);
 }
@@ -456,13 +314,13 @@
 }
 
 .geist-button-secondary {
-  background: #ffffff; /* White background */
+  background: var(--geist-color-1); /* Default background */
   color: var(--geist-color-10);
   border: 1px solid var(--geist-color-4);
 }
 
 .geist-button-secondary:hover {
-  background: #ffffff; /* White background on hover */
+  background: var(--geist-color-2); /* Hover background */
   border-color: var(--geist-color-5);
 }
 
@@ -508,9 +366,9 @@
   width: 100%;
   padding: 0.625rem 1rem;
   border-radius: var(--geist-radius-base); /* 6px */
-  border: 1px solid #666666; /* Dark grey border */
-  background: #ffffff;
-  color: #000000 !important;
+  border: 1px solid var(--geist-color-4);
+  background: var(--geist-color-1);
+  color: var(--geist-color-10);
   font-family: var(--geist-font-sans);
   font-size: 0.875rem; /* 14px */
   line-height: 1.25rem;
@@ -519,28 +377,24 @@
   min-height: 44px;
 }
 
-.geist-input option {
-  color: #000000;
-}
-
 .geist-input::placeholder {
   color: var(--geist-color-9); /* Secondary text */
 }
 
 .geist-input:hover {
-  border-color: #525252; /* Darker grey on hover */
+  border-color: var(--geist-color-5);
 }
 
 .geist-input:focus {
-  border-color: var(--geist-primary); /* Green focus border */
-  box-shadow: 0 0 0 3px rgba(30, 113, 69, 0.1);
+  border-color: var(--geist-color-6); /* Active border */
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .geist-input:disabled {
   background: var(--geist-color-2);
   color: var(--geist-color-9);
   cursor: not-allowed;
-  border-color: #666666; /* Dark grey border for disabled state */
+  border-color: var(--geist-color-4);
 }
 
 /* Dark mode input - handled by CSS variables */
@@ -557,7 +411,7 @@ html {
 
 body {
   background: var(--geist-background-1);
-  color: #000000;
+  color: var(--geist-color-10);
   font-family: var(--geist-font-sans);
   margin: 0;
   padding: 0;
@@ -572,13 +426,13 @@ body {
 }
 
 a {
-  color: var(--geist-primary);
+  color: var(--geist-blue);
   text-decoration: none;
   transition: color var(--geist-transition-fast);
 }
 
 a:hover {
-  color: var(--geist-primary-dark);
+  color: var(--geist-blue-dark);
 }
 
 /* ============================================
@@ -922,4 +776,3 @@ a:hover {
     transform: none;
   }
 }
-

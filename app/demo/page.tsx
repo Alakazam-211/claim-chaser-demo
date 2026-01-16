@@ -96,7 +96,7 @@ const getStatusColor = (status?: string) => {
     case 'Complete':
       return 'text-green-600 bg-green-50 border-green-200'
     case 'Denied':
-      return 'text-red-600 bg-red-50 border-red-200'
+      return 'text-red-700 bg-red-50 border-red-300'
     case 'Pending Resubmission':
       return 'text-orange-600 bg-orange-50 border-orange-200'
     case 'Awaiting Acceptance':
@@ -295,7 +295,12 @@ export default function DemoPage() {
         
         checkForActiveCall()
       } else {
-        setCallStatus(`❌ ${data.error || 'Failed to initiate call'}`)
+        // Show detailed error message
+        const errorMsg = data.error || 'Failed to initiate call'
+        const details = data.details ? ` (${data.details})` : ''
+        const status = data.status ? ` [Status: ${data.status}]` : ''
+        console.error('API Error:', { error: errorMsg, details: data.details, status: data.status, fullResponse: data })
+        setCallStatus(`❌ ${errorMsg}${details}${status}`)
       }
     } catch (error) {
       setCallStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`)
@@ -337,8 +342,8 @@ export default function DemoPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto demo-page-content">
-      <div className="mb-8" style={{ color: 'white' }}>
+    <div className="max-w-4xl mx-auto demo-page-content pt-24 pb-24">
+      <div className="mb-8 text-center" style={{ color: 'white' }}>
         <h1 className="text-4xl font-bold mb-2" style={{ color: 'white' }}>Claim Chaser Demo</h1>
         <p style={{ color: 'white' }}>
           Experience how AI Claim Chaser automatically calls insurance providers to get denial reasons.
@@ -378,7 +383,7 @@ export default function DemoPage() {
                 placeholder="(555) 123-4567"
                 disabled={isCalling || claim?.claim_status === 'Pending Resubmission'}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-1 !bg-transparent !border-0 !p-0 !shadow-none !rounded-none">
                 We'll call this number to demonstrate the system
               </p>
             </div>

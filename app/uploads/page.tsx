@@ -461,7 +461,7 @@ export default function UploadsPage() {
               type="file"
               accept=".xlsx,.xls"
               onChange={handleExcelFileChange}
-              className="block w-full text-sm text-dark file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:bg-[#1e7145] file:text-white file:text-sm file:font-bold hover:file:bg-[#165832] transition-all cursor-pointer glass-input-enhanced rounded-lg px-3 py-2"
+              className="block w-full text-sm text-dark file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:bg-[#1e7145] file:text-white file:text-sm file:font-bold hover:file:bg-[#165832] transition-all cursor-pointer bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1e7145] focus:border-transparent"
             />
           </div>
 
@@ -485,7 +485,7 @@ export default function UploadsPage() {
                           [column]: e.target.value,
                         })
                       }
-                      className="flex-1 px-3 py-2 glass-input-enhanced rounded-lg"
+                      className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e7145] focus:border-transparent"
                     >
                       <option value="">-- Not mapped --</option>
                       {fieldOptions.map((option) => (
