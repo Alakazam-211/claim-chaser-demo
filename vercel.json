@@ -9,7 +9,5 @@
       "path": "/api/cron/process-completed-calls",
       "schedule": "* * * * *"
     }
-  ],
-  "domains": ["demo.claimchaser.ai"]
+  ]
 }
-
