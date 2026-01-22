@@ -65,14 +65,30 @@ function formatDenialReason(reason: string): string {
   let formatted = reason.trim()
   
   // Remove common conversational prefixes (case-insensitive)
+  // Handle compound phrases first (e.g., "Yeah, it was denied because...")
+  const compoundPrefixes = [
+    /^yeah[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^yes[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^well[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^um[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^uh[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^so[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^okay[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+  ]
+  
+  for (const prefix of compoundPrefixes) {
+    formatted = formatted.replace(prefix, '')
+  }
+  
+  // Then remove simple conversational prefixes
   const prefixes = [
-    /^yeah[,]?\s*/i,
-    /^yes[,]?\s*/i,
-    /^well[,]?\s*/i,
-    /^um[,]?\s*/i,
-    /^uh[,]?\s*/i,
-    /^so[,]?\s*/i,
-    /^okay[,]?\s*/i,
+    /^yeah[,]?\s+/i,
+    /^yes[,]?\s+/i,
+    /^well[,]?\s+/i,
+    /^um[,]?\s+/i,
+    /^uh[,]?\s+/i,
+    /^so[,]?\s+/i,
+    /^okay[,]?\s+/i,
     /^it was denied because\s*/i,
     /^it was denied\s+/i,
     /^the claim was denied because\s*/i,
@@ -244,15 +260,29 @@ async function extractClaimInfoFromTranscript(
   // Look for denial reasons in user messages
   const userMessages = messages.filter((m) => m.role === 'user')
   
-  // Pattern matching for denial reasons - improved patterns
+  // Pattern matching for denial reasons - comprehensive patterns
   const denialPatterns = [
-    /denied because\s+(.+?)(?:\.|$|,|and|also)/gi,
-    /reason for denial[:\s]+(.+?)(?:\.|$|,|and|also)/gi,
-    /denial reason[:\s]+(.+?)(?:\.|$|,|and|also)/gi,
-    /not covered[:\s]+(.+?)(?:\.|$|,|and|also)/gi,
-    /was denied[:\s]+(.+?)(?:\.|$|,|and|also)/gi,
-    /denial code[:\s]+(.+?)(?:\.|$|,|and|also)/gi,
-    /denied\s+(?:due to|because of|for)\s+(.+?)(?:\.|$|,|and|also)/gi,
+    // Direct denial patterns
+    /denied because\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /reason for denial[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /denial reason[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /not covered[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /was denied[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /denial code[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /denied\s+(?:due to|because of|for)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    // Numbered reasons
+    /(?:first|1st|second|2nd|third|3rd|fourth|4th|fifth|5th)\s+(?:reason|denial reason)[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+    // Missing/absence patterns
+    /(?:missing|absence of|lack of|no)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /(?:was|is)\s+(?:missing|absent|lacking)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    // Rejection patterns
+    /rejected\s+(?:because|due to|for)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /rejection\s+(?:reason|code)[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+    // Not eligible/approved patterns
+    /not\s+(?:eligible|approved)\s+(?:because|due to|for)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    // Incomplete/incorrect patterns
+    /(?:incomplete|incorrect|invalid|wrong)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /(?:was|is)\s+(?:incomplete|incorrect|invalid|wrong)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
   ]
 
   for (const pattern of denialPatterns) {
@@ -271,11 +301,16 @@ async function extractClaimInfoFromTranscript(
     }
   }
 
-  // Look for sentences with denial keywords in user messages
-  const denialKeywords = ['denied', 'denial', 'rejected', 'not covered', 'not eligible', 'not approved']
+  // Comprehensive pass: Look for sentences with denial keywords in user messages
+  const denialKeywords = [
+    'denied', 'denial', 'rejected', 'not covered', 'not eligible', 'not approved',
+    'missing', 'incomplete', 'incorrect', 'invalid', 'wrong', 'absence', 'lack',
+    'rejection', 'denial code', 'denial reason', 'reason for denial'
+  ]
+  
   for (const msg of userMessages) {
     const content = msg.message || msg.content || ''
-    const sentences = content.split(/[.!?]+/).filter((s: string) => s.trim())
+    const sentences = content.split(/[.!?;]+/).filter((s: string) => s.trim())
     
     for (const sentence of sentences) {
       const lowerSentence = sentence.toLowerCase()
@@ -286,6 +321,8 @@ async function extractClaimInfoFromTranscript(
           // Check if this sentence contains a denial reason pattern
           let foundInPattern = false
           for (const pattern of denialPatterns) {
+            // Reset regex lastIndex to avoid state issues
+            pattern.lastIndex = 0
             if (pattern.test(trimmed)) {
               foundInPattern = true
               break
@@ -295,7 +332,7 @@ async function extractClaimInfoFromTranscript(
           // If not found in patterns, try to extract the reason part
           if (!foundInPattern) {
             // Try to extract just the reason part after denial keywords
-            const reasonMatch = trimmed.match(/(?:denied|denial|rejected|not covered|not eligible|not approved)[:\s]+(.+?)(?:\.|$|,|and|also)/i)
+            const reasonMatch = trimmed.match(/(?:denied|denial|rejected|not covered|not eligible|not approved|missing|incomplete|incorrect|invalid|wrong|absence of|lack of)[:\s]+(.+?)(?:\.|$|,|and|also|;)/i)
             if (reasonMatch && reasonMatch[1]) {
               const splitReasons = splitMultipleReasons(reasonMatch[1])
               for (const reason of splitReasons) {
@@ -304,13 +341,93 @@ async function extractClaimInfoFromTranscript(
                 }
               }
             } else {
-              // Fallback: format the whole sentence
-              const splitReasons = splitMultipleReasons(trimmed)
-              for (const reason of splitReasons) {
-                if (reason && isValidDenialReason(reason)) {
-                  denialReasons.push(reason)
+              // Fallback: format the whole sentence if it seems to contain a denial reason
+              // Only if it's not a question or instruction
+              if (!trimmed.match(/^(what|how|why|when|where|who|can you|will you|do you)/i) &&
+                  !trimmed.match(/(?:need to|should|must|steps|to fix|to resolve)/i)) {
+                const splitReasons = splitMultipleReasons(trimmed)
+                for (const reason of splitReasons) {
+                  if (reason && isValidDenialReason(reason)) {
+                    denialReasons.push(reason)
+                  }
                 }
               }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Additional pass: Look for numbered lists of denial reasons
+  // Pattern: "The first reason is...", "Second, ...", "Also, ...", etc.
+  const numberedPatterns = [
+    /(?:first|1st|second|2nd|third|3rd|fourth|4th|fifth|5th)[,.]?\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    /(?:one|two|three|four|five)\s+(?:reason|issue|problem)[:\s]+(.+?)(?:\.|$|,|and|also|;)/gi,
+  ]
+  
+  for (const pattern of numberedPatterns) {
+    const matches = fullTranscript.matchAll(pattern)
+    for (const match of matches) {
+      if (match[1]) {
+        const rawReason = match[1].trim()
+        // Check if this looks like a denial reason (contains denial keywords or describes a problem)
+        const lowerReason = rawReason.toLowerCase()
+        if (lowerReason.includes('denied') || 
+            lowerReason.includes('missing') || 
+            lowerReason.includes('incomplete') ||
+            lowerReason.includes('incorrect') ||
+            lowerReason.includes('invalid') ||
+            lowerReason.includes('not covered') ||
+            lowerReason.includes('not eligible')) {
+          const splitReasons = splitMultipleReasons(rawReason)
+          for (const reason of splitReasons) {
+            if (reason && isValidDenialReason(reason)) {
+              denialReasons.push(reason)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Final comprehensive pass: Analyze entire transcript for any missed denial reasons
+  // Look for common phrases that indicate denial reasons that might not have been caught
+  const comprehensivePatterns = [
+    // "The claim needs..." patterns that indicate missing information
+    /the\s+claim\s+(?:needs|requires|is missing|was missing|is lacking|was lacking)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    // "We need..." patterns from insurance rep
+    /(?:we|you)\s+need\s+(?:to\s+)?(?:provide|submit|send|include|add)\s+(.+?)(?:\.|$|,|and|also|;)/gi,
+    // "It was..." patterns describing problems
+    /it\s+was\s+(?:missing|incomplete|incorrect|invalid|wrong|denied|rejected)\s+(?:because\s+)?(.+?)(?:\.|$|,|and|also|;)/gi,
+    // "There was no..." patterns
+    /there\s+was\s+no\s+(.+?)(?:\.|$|,|and|also|;|on\s+the\s+record|in\s+the\s+system)/gi,
+    // "There is no..." patterns
+    /there\s+is\s+no\s+(.+?)(?:\.|$|,|and|also|;|on\s+the\s+record|in\s+the\s+system)/gi,
+  ]
+
+  for (const pattern of comprehensivePatterns) {
+    const matches = fullTranscript.matchAll(pattern)
+    for (const match of matches) {
+      if (match[1]) {
+        const rawReason = match[1].trim()
+        // Filter out common false positives
+        const lowerReason = rawReason.toLowerCase()
+        if (!lowerReason.match(/^(patient|member|subscriber|beneficiary|claimant)/i) &&
+            !lowerReason.includes('next step') &&
+            !lowerReason.includes('how to') &&
+            !lowerReason.includes('what to') &&
+            rawReason.length > 5) {
+          // Format as a denial reason
+          let formattedReason = rawReason
+          // If it doesn't start with "the claim", add it
+          if (!formattedReason.toLowerCase().startsWith('the claim')) {
+            formattedReason = 'the claim was missing ' + formattedReason
+          }
+          const splitReasons = splitMultipleReasons(formattedReason)
+          for (const reason of splitReasons) {
+            if (reason && isValidDenialReason(reason)) {
+              denialReasons.push(reason)
             }
           }
         }

@@ -58,14 +58,30 @@ function formatDenialReason(reason: string): string {
   let formatted = reason.trim()
   
   // Remove common conversational prefixes (case-insensitive)
+  // Handle compound phrases first (e.g., "Yeah, it was denied because...")
+  const compoundPrefixes = [
+    /^yeah[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^yes[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^well[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^um[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^uh[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^so[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+    /^okay[,]?\s*(?:it\s+was\s+denied\s+because|it\s+was\s+denied|it's\s+denied\s+because|it's\s+denied)\s+/i,
+  ]
+  
+  for (const prefix of compoundPrefixes) {
+    formatted = formatted.replace(prefix, '')
+  }
+  
+  // Then remove simple conversational prefixes
   const prefixes = [
-    /^yeah[,]?\s*/i,
-    /^yes[,]?\s*/i,
-    /^well[,]?\s*/i,
-    /^um[,]?\s*/i,
-    /^uh[,]?\s*/i,
-    /^so[,]?\s*/i,
-    /^okay[,]?\s*/i,
+    /^yeah[,]?\s+/i,
+    /^yes[,]?\s+/i,
+    /^well[,]?\s+/i,
+    /^um[,]?\s+/i,
+    /^uh[,]?\s+/i,
+    /^so[,]?\s+/i,
+    /^okay[,]?\s+/i,
     /^it was denied because\s*/i,
     /^it was denied\s+/i,
     /^the claim was denied because\s*/i,

@@ -147,7 +147,6 @@ export default function DemoPage() {
         const response = await fetch('/api/calls/active')
         const data = await response.json()
         
-        
         if (data.activeCall) {
           setActiveCall(data.activeCall)
           setCallStatus(null)

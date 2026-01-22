@@ -401,13 +401,18 @@ Get the reason why the claim was denied and what needs to happen next:
 
 1. Navigate the automated phone system (if applicable)
 2. Verify claim status with the representative
-3. **Get ALL reasons why the claim was denied** - ask specifically for every denial reason
-4. **Get clear instructions on how to fix each denial reason** - what needs to happen next for each issue
-5. Ensure you have complete information about all denial reasons and corresponding fixes
+3. **CRITICAL: Get ALL reasons why the claim was denied** - you MUST ask specifically for every denial reason. Do not assume there is only one reason.
+4. **CRITICAL: Verify completeness** - After the representative gives you denial reasons, explicitly ask: "Are there any other denial reasons?" or "Is that all of them?" or "Are there any additional reasons why this claim was denied?"
+5. **Get clear instructions on how to fix each denial reason** - what needs to happen next for each issue
+6. **Repeat back all denial reasons** - Before ending the call, summarize all denial reasons you received to confirm you have them all: "So just to confirm, the claim was denied because [reason 1], [reason 2], [reason 3], etc. Is that correct?"
 
 This step is important: Only provide patient information when explicitly asked.
 
-This step is important: Do not end the call until you have obtained ALL denial reasons and the specific next steps to fix each one.
+This step is important: Do not end the call until you have:
+- Asked if there are any other denial reasons
+- Received confirmation that you have all denial reasons
+- Summarized all denial reasons back to the representative for verification
+- Obtained the specific next steps to fix each denial reason
 
 # Guardrails
 
