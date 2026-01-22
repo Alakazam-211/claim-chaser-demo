@@ -17,17 +17,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/claims', label: 'Claims' },
-    { href: '/offices', label: 'Offices' },
-    { href: '/doctors', label: 'Doctors' },
-    { href: '/providers', label: 'Providers' },
-    { href: '/users', label: 'Users' },
-    { href: '/organizations', label: 'Organizations' },
-    { href: '/uploads', label: 'Uploads' },
-  ]
-
   return (
     <html lang="en">
       <body className="min-h-screen" style={{ background: '#1e7145' }}>

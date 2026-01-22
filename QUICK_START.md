@@ -37,35 +37,8 @@
 
 ## Available Pages
 
-- **Home** (`/`) - Dashboard with navigation cards
-- **Offices** (`/offices`) - Manage medical offices
-- **Doctors** (`/doctors`) - Manage doctor profiles
-- **Uploads** (`/uploads`) - Upload Excel files and text documents
-
-## Testing the Application
-
-1. **Add an Office:**
-   - Go to Offices page
-   - Click "Add Office"
-   - Fill in: Name, Address, and optionally City, State, ZIP, Callback Number
-   - Click "Save"
-
-2. **Add a Doctor:**
-   - Go to Doctors page
-   - Click "Add Doctor"
-   - Fill in: Name, NPI, and optionally select an Office
-   - Click "Save"
-
-3. **Upload an Excel File:**
-   - Go to Uploads page
-   - Select an Excel file (.xlsx or .xls)
-   - Map columns to database fields
-   - Click "Upload Excel File"
-
-4. **Upload Text:**
-   - Go to Uploads page
-   - Paste or type text content
-   - Click "Upload Text Document"
+- **Home** (`/`) - Demo page for testing the Claim Chaser system
+- **Demo** (`/demo`) - Interactive demo page for making calls
 
 ## Troubleshooting
 
