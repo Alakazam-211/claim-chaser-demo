@@ -599,7 +599,7 @@ export async function processTranscriptForCall(
     fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-transcript-internal.ts:175',message:'No messages found - retrying after wait',data:{conversationId,status:conversationData.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
     // #endregion
     
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise(resolve => setTimeout(resolve, 1000))
     
     const retryResponse = await fetch(
       `${ELEVENLABS_API_BASE}/convai/conversations/${conversationId}`,

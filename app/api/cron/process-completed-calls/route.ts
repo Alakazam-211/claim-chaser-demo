@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 const ELEVENLABS_API_BASE = 'https://api.elevenlabs.io/v1'
 
@@ -11,7 +11,7 @@ const ELEVENLABS_API_BASE = 'https://api.elevenlabs.io/v1'
  */
 export async function GET(request: NextRequest) {
   // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:12',message:'Cron job started',data:{timestamp:new Date().toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:12',message:'Cron job started',data:{timestamp:new Date().toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
   // #endregion
   // Verify this is a cron request (optional security check)
   // Allow Vercel cron requests (they send x-vercel-cron header) or requests with valid CRON_SECRET
@@ -21,17 +21,24 @@ export async function GET(request: NextRequest) {
   
   if (process.env.CRON_SECRET && !isVercelCron && !hasValidSecret) {
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:16',message:'Auth failed',data:{hasSecret:!!process.env.CRON_SECRET,isVercelCron,hasValidSecret,hasHeader:!!authHeader},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:16',message:'Auth failed',data:{hasSecret:!!process.env.CRON_SECRET,isVercelCron,hasValidSecret,hasHeader:!!authHeader},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const supabase = await createClient()
+    // Use service role client to bypass RLS (same as active endpoint)
+    let supabase
+    try {
+      supabase = createServiceRoleClient()
+    } catch {
+      // Fallback to regular client if service role key not available
+      supabase = await createClient()
+    }
     const apiKey = process.env.ELEVENLABS_API_KEY
 
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:25',message:'API key check',data:{hasApiKey:!!apiKey},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:25',message:'API key check',data:{hasApiKey:!!apiKey},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
 
     if (!apiKey) {
@@ -41,12 +48,24 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // First, check the most recent call to understand its state
+    // #region agent log
+    const { data: mostRecentCall } = await supabase
+      .from('calls')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:32',message:'Most recent call state',data:{hasRecentCall:!!mostRecentCall,callId:mostRecentCall?.id,status:mostRecentCall?.status,conversationId:mostRecentCall?.conversation_id,hasConversationId:!!mostRecentCall?.conversation_id,startedAt:mostRecentCall?.started_at,endedAt:mostRecentCall?.ended_at,hasEndedAt:!!mostRecentCall?.ended_at,hasExtractedData:!!mostRecentCall?.extracted_data,extractedDataKeys:mostRecentCall?.extracted_data?Object.keys(mostRecentCall.extracted_data):[],extractedDataDenialReasons:mostRecentCall?.extracted_data?.denial_reasons?.length||0,createdAt:mostRecentCall?.created_at,now:new Date().toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,H'})}).catch(()=>{});
+    // #endregion
+
     // Find all calls that are initiated or in_progress
     // Check calls that started more than 1 minute ago (to avoid checking calls that just started)
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString()
     
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:35',message:'Querying active calls',data:{oneMinuteAgo,now:new Date().toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:40',message:'Querying active calls',data:{oneMinuteAgo,now:new Date().toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C,D'})}).catch(()=>{});
     // #endregion
     
     const { data: activeCalls, error: fetchError } = await supabase
@@ -60,6 +79,11 @@ export async function GET(request: NextRequest) {
     // (e.g., if transcript extraction failed or claim_id was missing)
     // Check for calls completed in the last 10 minutes that don't have extracted_data or have empty extracted_data
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:48',message:'Querying recently completed calls',data:{tenMinutesAgo,now:new Date().toISOString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,D'})}).catch(()=>{});
+    // #endregion
+    
     const { data: recentCompletedCalls } = await supabase
       .from('calls')
       .select('*')
@@ -68,22 +92,63 @@ export async function GET(request: NextRequest) {
       .not('conversation_id', 'is', null)
       .limit(10)
 
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:55',message:'Recently completed calls query result',data:{recentCompletedCount:recentCompletedCalls?.length||0,callIds:recentCompletedCalls?.map(c=>c.id)||[],callDetails:recentCompletedCalls?.map(c=>({id:c.id,status:c.status,endedAt:c.ended_at,hasExtractedData:!!c.extracted_data,extractedDataKeys:c.extracted_data?Object.keys(c.extracted_data):[]}))||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,D'})}).catch(()=>{});
+    // #endregion
+
+    // Also check for calls that started recently but don't have extracted_data yet
+    // This catches calls that might be completed but status/ended_at haven't been updated yet
+    // Query for calls without extracted_data (null or empty object)
+    const { data: recentCallsWithoutData } = await supabase
+      .from('calls')
+      .select('*')
+      .gte('started_at', tenMinutesAgo)
+      .not('conversation_id', 'is', null)
+      .limit(20) // Get more to filter in code
+
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:65',message:'Recent calls without extracted_data query result',data:{recentCallsWithoutDataCount:recentCallsWithoutData?.length||0,callIds:recentCallsWithoutData?.map(c=>c.id)||[],callDetails:recentCallsWithoutData?.map(c=>({id:c.id,status:c.status,startedAt:c.started_at,endedAt:c.ended_at,hasExtractedData:!!c.extracted_data}))||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,D,H'})}).catch(()=>{});
+    // #endregion
+
     // Filter to only those without extracted_data or with empty extracted_data
     const callsNeedingProcessing = (recentCompletedCalls || []).filter(call => 
       !call.extracted_data || 
       (typeof call.extracted_data === 'object' && Object.keys(call.extracted_data).length === 0) ||
       (call.extracted_data && (!call.extracted_data.denial_reasons || call.extracted_data.denial_reasons.length === 0))
     )
-
+    
+    // Also add recent calls without data that aren't already in the list
+    const recentCallsNeedingProcessing = (recentCallsWithoutData || []).filter(call => {
+      // Skip if already in activeCalls or callsNeedingProcessing
+      const alreadyIncluded = 
+        (activeCalls || []).some(c => c.id === call.id) ||
+        callsNeedingProcessing.some(c => c.id === call.id)
+      
+      if (alreadyIncluded) return false
+      
+      // Include if no extracted_data or empty extracted_data
+      return !call.extracted_data || 
+        (typeof call.extracted_data === 'object' && Object.keys(call.extracted_data).length === 0) ||
+        (call.extracted_data && (!call.extracted_data.denial_reasons || call.extracted_data.denial_reasons.length === 0))
+    })
+    
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:50',message:'Found recently completed calls needing processing',data:{recentCompletedCount:recentCompletedCalls?.length||0,needsProcessingCount:callsNeedingProcessing.length,callIds:callsNeedingProcessing.map(c=>c.id)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:85',message:'Recent calls needing processing (from fallback query)',data:{recentCallsNeedingProcessingCount:recentCallsNeedingProcessing.length,callIds:recentCallsNeedingProcessing.map(c=>c.id),callDetails:recentCallsNeedingProcessing.map(c=>({id:c.id,status:c.status,startedAt:c.started_at,endedAt:c.ended_at}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,D,H'})}).catch(()=>{});
     // #endregion
 
-    // Combine both lists
-    const allCallsToProcess = [...(activeCalls || []), ...callsNeedingProcessing]
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:62',message:'Filtered calls needing processing',data:{recentCompletedCount:recentCompletedCalls?.length||0,needsProcessingCount:callsNeedingProcessing.length,callIds:callsNeedingProcessing.map(c=>c.id),filterDetails:callsNeedingProcessing.map(c=>({id:c.id,hasExtractedData:!!c.extracted_data,extractedDataType:typeof c.extracted_data,extractedDataKeys:c.extracted_data?Object.keys(c.extracted_data):[],denialReasonsCount:c.extracted_data?.denial_reasons?.length||0}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
+
+    // Combine all lists
+    const allCallsToProcess = [...(activeCalls || []), ...callsNeedingProcessing, ...recentCallsNeedingProcessing]
 
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:42',message:'Active calls query result',data:{activeCallsCount:activeCalls?.length||0,error:fetchError?.message||null,callIds:activeCalls?.map(c=>c.id)||[],conversationIds:activeCalls?.map(c=>c.conversation_id)||[],statuses:activeCalls?.map(c=>c.status)||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C,D'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:68',message:'Active calls query result',data:{activeCallsCount:activeCalls?.length||0,error:fetchError?.message||null,callIds:activeCalls?.map(c=>c.id)||[],conversationIds:activeCalls?.map(c=>c.conversation_id)||[],statuses:activeCalls?.map(c=>c.status)||[],startedAts:activeCalls?.map(c=>c.started_at)||[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C,D'})}).catch(()=>{});
+    // #endregion
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:71',message:'All calls to process',data:{totalCallsToProcess:allCallsToProcess.length,callIds:allCallsToProcess.map(c=>c.id),mostRecentCallIncluded:mostRecentCall?allCallsToProcess.some(c=>c.id===mostRecentCall.id):false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,H'})}).catch(()=>{});
     // #endregion
 
     if (fetchError) {
@@ -124,7 +189,7 @@ export async function GET(request: NextRequest) {
           .maybeSingle()
 
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:214',message:'Voice settings check (next call attempt)',data:{enabled:voiceSettings?.enabled,hasVoiceSettings:!!voiceSettings,voiceSettingsId:voiceSettings?.id,allSettingsCount:allVoiceSettings?.length||0,allSettings:allVoiceSettings?.map(s=>({id:s.id,enabled:s.enabled,created:s.created_at}))||[],error:voiceSettingsError?.message||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:214',message:'Voice settings check (next call attempt)',data:{enabled:voiceSettings?.enabled,hasVoiceSettings:!!voiceSettings,voiceSettingsId:voiceSettings?.id,allSettingsCount:allVoiceSettings?.length||0,allSettings:allVoiceSettings?.map(s=>({id:s.id,enabled:s.enabled,created:s.created_at}))||[],error:voiceSettingsError?.message||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
         // #endregion
         
         if (voiceSettings?.enabled) {
@@ -138,7 +203,7 @@ export async function GET(request: NextRequest) {
             .maybeSingle()
 
           // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:220',message:'Active call check (next call attempt)',data:{hasActiveCall:!!existingActiveCall,activeCallId:existingActiveCall?.id||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:220',message:'Active call check (next call attempt)',data:{hasActiveCall:!!existingActiveCall,activeCallId:existingActiveCall?.id||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
           // #endregion
 
           if (!existingActiveCall) {
@@ -147,7 +212,7 @@ export async function GET(request: NextRequest) {
             // Make the next call automatically by directly calling the handler function
             try {
               // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:224',message:'Attempting to make next call via direct import',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,E,F'})}).catch(()=>{});
+              fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:224',message:'Attempting to make next call via direct import',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,E,F'})}).catch(()=>{});
               // #endregion
               
               console.log(`[AUTO-CALL] Checking if next call should start...`)
@@ -160,25 +225,25 @@ export async function GET(request: NextRequest) {
               const makeCallResponse = await makeCallHandler(makeCallRequest)
 
               // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:236',message:'make-call handler response received',data:{status:makeCallResponse.status,ok:makeCallResponse.ok,statusText:makeCallResponse.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E,F'})}).catch(()=>{});
+              fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:236',message:'make-call handler response received',data:{status:makeCallResponse.status,ok:makeCallResponse.ok,statusText:makeCallResponse.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E,F'})}).catch(()=>{});
               // #endregion
 
               if (makeCallResponse.ok) {
                 const makeCallData = await makeCallResponse.json()
                 // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:243',message:'Next call started successfully',data:{message:makeCallData.message,claimId:makeCallData.claim_id,callId:makeCallData.call_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+                fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:243',message:'Next call started successfully',data:{message:makeCallData.message,claimId:makeCallData.claim_id,callId:makeCallData.call_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
                 // #endregion
                 console.log(`[AUTO-CALL] Successfully started next call: ${makeCallData.message || 'Call initiated'}`)
               } else {
                 const errorData = await makeCallResponse.json().catch(() => ({ error: 'Unknown error' }))
                 // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:247',message:'make-call handler returned error',data:{status:makeCallResponse.status,error:errorData.error,errorData},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E,F'})}).catch(()=>{});
+                fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:247',message:'make-call handler returned error',data:{status:makeCallResponse.status,error:errorData.error,errorData},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E,F'})}).catch(()=>{});
                 // #endregion
                 console.log(`[AUTO-CALL] Could not start next call: ${errorData.error || 'Unknown error'}`)
               }
             } catch (makeCallError) {
               // #region agent log
-              fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:250',message:'Exception making next call',data:{error:makeCallError instanceof Error?makeCallError.message:String(makeCallError),stack:makeCallError instanceof Error?makeCallError.stack:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+              fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:250',message:'Exception making next call',data:{error:makeCallError instanceof Error?makeCallError.message:String(makeCallError),stack:makeCallError instanceof Error?makeCallError.stack:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
               // #endregion
               console.error('[AUTO-CALL] Error making next call automatically:', makeCallError)
             }
@@ -196,7 +261,7 @@ export async function GET(request: NextRequest) {
     // If there are no calls to process, still check if we should make a new call
     if (!allCallsToProcess || allCallsToProcess.length === 0) {
       // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:97',message:'No calls to process - checking for new calls',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:97',message:'No calls to process - checking for new calls',data:{mostRecentCallId:mostRecentCall?.id,mostRecentCallStatus:mostRecentCall?.status,mostRecentCallHasConversationId:!!mostRecentCall?.conversation_id,mostRecentCallStartedAt:mostRecentCall?.started_at,mostRecentCallEndedAt:mostRecentCall?.ended_at,oneMinuteAgo,tenMinutesAgo},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D'})}).catch(()=>{});
       // #endregion
       await attemptNextCall()
       return NextResponse.json({
@@ -210,19 +275,19 @@ export async function GET(request: NextRequest) {
     for (const call of allCallsToProcess) {
       try {
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:67',message:'Processing call',data:{callId:call.id,claimId:call.claim_id,conversationId:call.conversation_id,status:call.status,startedAt:call.started_at},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:67',message:'Processing call',data:{callId:call.id,claimId:call.claim_id,conversationId:call.conversation_id,status:call.status,startedAt:call.started_at},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
         // #endregion
 
         if (!call.conversation_id) {
           // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:70',message:'Skipping call - no conversation_id',data:{callId:call.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:70',message:'Skipping call - no conversation_id',data:{callId:call.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
           // #endregion
           continue
         }
 
         // Fetch conversation status from ElevenLabs
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:74',message:'Fetching conversation from ElevenLabs',data:{conversationId:call.conversation_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:74',message:'Fetching conversation from ElevenLabs',data:{conversationId:call.conversation_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
         // #endregion
 
         const conversationResponse = await fetch(
@@ -231,14 +296,14 @@ export async function GET(request: NextRequest) {
         )
 
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:79',message:'ElevenLabs API response',data:{status:conversationResponse.status,ok:conversationResponse.ok,conversationId:call.conversation_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:79',message:'ElevenLabs API response',data:{status:conversationResponse.status,ok:conversationResponse.ok,conversationId:call.conversation_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
         // #endregion
 
         if (!conversationResponse.ok) {
           // If conversation not found or error, skip it
           const errorText = await conversationResponse.text()
           // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:82',message:'ElevenLabs API error',data:{status:conversationResponse.status,errorText,conversationId:call.conversation_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:82',message:'ElevenLabs API error',data:{status:conversationResponse.status,errorText,conversationId:call.conversation_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
           // #endregion
           console.warn(`Failed to fetch conversation ${call.conversation_id}: ${conversationResponse.status}`)
           continue
@@ -247,7 +312,7 @@ export async function GET(request: NextRequest) {
         const conversationData = await conversationResponse.json()
         
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:89',message:'Conversation data received',data:{hasStatus:!!conversationData.status,status:conversationData.status,hasConversationStatus:!!conversationData.conversation_status,conversationStatus:conversationData.conversation_status,hasEndedAt:!!conversationData.ended_at,endedAt:conversationData.ended_at,messageCount:conversationData.messages?.length||0,lastMessageRole:conversationData.messages?.[conversationData.messages.length-1]?.role},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E,F'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:89',message:'Conversation data received',data:{hasStatus:!!conversationData.status,status:conversationData.status,hasConversationStatus:!!conversationData.conversation_status,conversationStatus:conversationData.conversation_status,hasEndedAt:!!conversationData.ended_at,endedAt:conversationData.ended_at,messageCount:conversationData.messages?.length||0,lastMessageRole:conversationData.messages?.[conversationData.messages.length-1]?.role},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E,F'})}).catch(()=>{});
         // #endregion
 
         // Check if conversation is completed
@@ -265,13 +330,13 @@ export async function GET(request: NextRequest) {
            conversationData.messages[conversationData.messages.length - 1]?.role === 'system')
 
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:96',message:'Completion check result',data:{callStatus:call.status,conversationStatus:status,isCompleted,check1:call.status==='completed',check2:status==='completed',check3:status==='ended',check4:status==='done',check5:status==='finished',check6:conversationData.ended_at!==null,check7:!!conversationData.transcript,check8:conversationData.messages?.length>0&&conversationData.messages[conversationData.messages.length-1]?.role==='system'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:96',message:'Completion check result',data:{callStatus:call.status,conversationStatus:status,isCompleted,check1:call.status==='completed',check2:status==='completed',check3:status==='ended',check4:status==='done',check5:status==='finished',check6:conversationData.ended_at!==null,check7:!!conversationData.transcript,check8:conversationData.messages?.length>0&&conversationData.messages[conversationData.messages.length-1]?.role==='system'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
         // #endregion
 
         if (!isCompleted && call.status !== 'completed') {
           // Call is still in progress, update status if needed
           // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:99',message:'Call not completed yet',data:{callId:call.id,currentStatus:call.status,hasMessages:!!conversationData.messages,hasTranscript:!!conversationData.transcript,messageCount:conversationData.messages?.length||0,transcriptCount:conversationData.transcript?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:99',message:'Call not completed yet',data:{callId:call.id,currentStatus:call.status,hasMessages:!!conversationData.messages,hasTranscript:!!conversationData.transcript,messageCount:conversationData.messages?.length||0,transcriptCount:conversationData.transcript?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
           // #endregion
           if (call.status === 'initiated' && (conversationData.transcript?.length > 0 || conversationData.messages?.length > 0)) {
             await supabase
@@ -300,7 +365,7 @@ export async function GET(request: NextRequest) {
 
         // Now process the transcript
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:110',message:'Call completed - starting transcript processing',data:{callId:call.id,claimId:call.claim_id,conversationId:call.conversation_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:110',message:'Call completed - starting transcript processing',data:{callId:call.id,claimId:call.claim_id,conversationId:call.conversation_id,status:call.status,endedAt:call.ended_at},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F,G'})}).catch(()=>{});
         // #endregion
 
         const { processTranscriptForCall } = await import('../../calls/process-transcript-internal')
@@ -308,13 +373,22 @@ export async function GET(request: NextRequest) {
         try {
           await processTranscriptForCall(call.conversation_id, call.id, supabase, apiKey)
           processedCount++
+          
+          // Verify the data was saved
+          const { data: updatedCall } = await supabase
+            .from('calls')
+            .select('extracted_data, transcript')
+            .eq('id', call.id)
+            .single()
+          
           // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:115',message:'Transcript processed successfully',data:{callId:call.id,claimId:call.claim_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G,H'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:120',message:'Transcript processed - verifying save',data:{callId:call.id,claimId:call.claim_id,hasExtractedData:!!updatedCall?.extracted_data,extractedDataKeys:updatedCall?.extracted_data?Object.keys(updatedCall.extracted_data):[],denialReasonsCount:updatedCall?.extracted_data?.denial_reasons?.length||0,hasTranscript:!!updatedCall?.transcript},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
           // #endregion
+          
           console.log(`Successfully processed call ${call.id} for claim ${call.claim_id}`)
         } catch (processError) {
           // #region agent log
-          fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:117',message:'Transcript processing failed',data:{callId:call.id,error:processError instanceof Error?processError.message:String(processError),stack:processError instanceof Error?processError.stack:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+          fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:125',message:'Transcript processing failed',data:{callId:call.id,error:processError instanceof Error?processError.message:String(processError),stack:processError instanceof Error?processError.stack:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
           // #endregion
           console.error(`Failed to process transcript for call ${call.id}:`, processError)
           errorCount++
@@ -322,7 +396,7 @@ export async function GET(request: NextRequest) {
         }
       } catch (error) {
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/45626ac0-1892-4f7a-abce-7919fa2e7a1d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:131',message:'Error in call processing loop',data:{callId:call.id,error:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'process-completed-calls/route.ts:131',message:'Error in call processing loop',data:{callId:call.id,error:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
         // #endregion
         console.error(`Error processing call ${call.id}:`, error)
         errorCount++

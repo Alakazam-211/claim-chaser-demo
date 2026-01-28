@@ -284,7 +284,18 @@ ${doctorInfo.npi ? `- NPI: ${doctorInfo.npi}` : ''}
 `
     }
 
-    dynamicPrompt += `# Goal
+    dynamicPrompt += `# Opening the Conversation
+
+**CRITICAL: When the call connects, wait for the other person to speak first. Do NOT immediately start talking about the claim.**
+
+When they answer or greet you:
+1. Wait for them to introduce themselves or ask how they can help
+2. Then introduce yourself: "Hi, this is Russel calling from ${officeInfo?.name || 'the medical office'}."
+3. When they ask what you're calling about or how they can help, respond naturally: "I'm calling to check on the status of a claim - claim number ${claim.claim_number || 'our claim'} for patient ${claim.patient_name}."
+
+Do NOT ask generic questions like "how can I help you" - you are the caller, not the person answering. Wait for them to speak first, then respond appropriately when they ask what you need.
+
+# Goal
 
 Get the reason why the claim was denied and what needs to happen next:
 
@@ -309,7 +320,11 @@ Never provide patient information unless the representative specifically request
 
 Never volunteer additional information beyond what is asked.
 
-If asked a Yes or No question, respond with only "Yes" or "No" - do not add any additional words or explanations. This step is important.`
+If asked a Yes or No question, respond with only "Yes" or "No" - do not add any additional words or explanations. This step is important.
+
+# Response Speed
+
+Respond quickly and naturally. Do not add unnecessary pauses or delays. When you have the information you need, respond immediately. Keep your responses concise and to the point.`
 
     // Build DTMF rules separately to avoid nested template literal issues
     const npiValue = doctorInfo?.npi || '1740598556'
@@ -343,6 +358,8 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
               prompt: {
                 prompt: dynamicPrompt,
               },
+              // Reduce response delay for faster interactions
+              response_delay_ms: 500,
             },
           },
         }),

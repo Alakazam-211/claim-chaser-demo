@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 const ELEVENLABS_API_BASE = 'https://api.elevenlabs.io/v1'
 
@@ -16,7 +16,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
+    // Use service role client for server-side operations that need to bypass RLS
+    // Regular client uses ANON_KEY which is subject to RLS policies
+    let supabase
+    try {
+      supabase = createServiceRoleClient()
+    } catch (serviceRoleError) {
+      // #region agent log
+      fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:22',message:'Service role client creation failed',data:{error:serviceRoleError instanceof Error?serviceRoleError.message:'unknown',hasServiceKey:!!process.env.SUPABASE_SERVICE_ROLE_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      // Fallback to regular client if service role key not available
+      supabase = await createClient()
+    }
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:30',message:'Supabase client created',data:{hasUrl:!!process.env.NEXT_PUBLIC_SUPABASE_URL,hasAnonKey:!!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,hasServiceKey:!!process.env.SUPABASE_SERVICE_ROLE_KEY,usingServiceRole:!!process.env.SUPABASE_SERVICE_ROLE_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'C,F'})}).catch(()=>{});
+    // #endregion
 
     // Store demo info in demos table
     const { data: demoRecord, error: demoError } = await supabase
@@ -38,13 +53,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if there's already an active call
-    const { data: activeCall } = await supabase
+    const { data: activeCall, error: activeCallQueryError } = await supabase
       .from('calls')
       .select('id, status')
       .in('status', ['initiated', 'in_progress'])
       .is('ended_at', null)
       .limit(1)
       .maybeSingle()
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:45',message:'Query active calls',data:{canQueryCalls:!activeCallQueryError,queryError:activeCallQueryError?.message||null,hasActiveCall:!!activeCall},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
 
     if (activeCall) {
       return NextResponse.json(
@@ -56,9 +75,13 @@ export async function POST(request: NextRequest) {
     // Find or create 1738493 claim
     let { data: claim, error: claimError } = await supabase
       .from('claims')
-      .select('*')
+      .select('*, organization_id')
       .eq('claim_number', '1738493')
       .maybeSingle()
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:60',message:'Demo claim fetched',data:{hasClaim:!!claim,claimId:claim?.id,hasOrgId:!!claim?.organization_id,orgId:claim?.organization_id||null,claimKeys:claim?Object.keys(claim):[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
 
     // If claim doesn't exist, create it
     if (!claim) {
@@ -346,13 +369,17 @@ export async function POST(request: NextRequest) {
       .select('*')
       .eq('id', claim.doctor_id)
       .single()
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:371',message:'Claim data for prompt',data:{hasClaim:!!claim,claimId:claim.id,patientName:claim.patient_name,claimNumber:claim.claim_number,insuranceProvider:claim.insurance_provider,hasOffice:!!office,hasDoctor:!!doctor,officeId:claim.office_id,doctorId:claim.doctor_id},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'G,H,I'})}).catch(()=>{});
+    // #endregion
 
     // Build dynamic prompt for demo call
     // In demo mode, we're calling the user (not insurance provider)
     // The user will play the role of the insurance representative
     let dynamicPrompt = `# Personality
 
-You are Russel, a professional medical billing representative calling on behalf of a medical office.
+You are Russel, a professional medical billing representative calling ${claim.insurance_provider} on behalf of a medical office.
 
 Your name is Russel. When introducing yourself, say "My name is Russel" or "This is Russel calling" or similar variations.
 
@@ -395,7 +422,18 @@ ${doctor.npi ? `- NPI: ${doctor.npi}` : ''}
 `
     }
 
-    dynamicPrompt += `# Goal
+    dynamicPrompt += `# Opening the Conversation
+
+**CRITICAL: When the call connects, wait for the other person to speak first. Do NOT immediately start talking about the claim.**
+
+When they answer or greet you:
+1. Wait for them to introduce themselves or ask how they can help
+2. Then introduce yourself: "Hi, this is Russel calling from ${office?.name || 'the medical office'}."
+3. When they ask what you're calling about or how they can help, respond naturally: "I'm calling to check on the status of a claim - claim number ${claim.claim_number || 'our claim'} for patient ${claim.patient_name}."
+
+Do NOT ask generic questions like "how can I help you" - you are the caller, not the person answering. Wait for them to speak first, then respond appropriately when they ask what you need.
+
+# Goal
 
 Get the reason why the claim was denied and what needs to happen next:
 
@@ -420,7 +458,11 @@ Never provide patient information unless the representative specifically request
 
 Never volunteer additional information beyond what is asked.
 
-If asked a Yes or No question, respond with only "Yes" or "No" - do not add any additional words or explanations. This step is important.`
+If asked a Yes or No question, respond with only "Yes" or "No" - do not add any additional words or explanations. This step is important.
+
+# Response Speed
+
+Respond quickly and naturally. Do not add unnecessary pauses or delays. When you have the information you need, respond immediately. Keep your responses concise and to the point.`
 
     // Build DTMF rules
     const npiValue = doctor?.npi || '1234567890'
@@ -442,6 +484,10 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
 4. **CRITICAL: WHEN ASKED FOR KEYPAD INPUT, YOU MUST USE THE TOOL - DO NOT SPEAK**: If the system asks you to enter numbers via keypad, you MUST use the play_keypad_touch_tone tool immediately. Do NOT say anything - just silently use the tool.
 5. **DO NOT ANNOUNCE THAT YOU ARE SENDING DTMF**: When using the play_keypad_touch_tone tool, do NOT announce it. Just silently use the tool.`
 
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:472',message:'Before prompt update',data:{agentId,promptLength:dynamicPrompt.length,promptPreview:dynamicPrompt.substring(0,200),hasClaimInfo:dynamicPrompt.includes(claim.patient_name),hasClaimNumber:dynamicPrompt.includes(claim.claim_number||'')},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'G,H,I'})}).catch(()=>{});
+    // #endregion
+    
     // Update agent prompt with claim-specific information
     const updatePromptResponse = await fetch(
       `${ELEVENLABS_API_BASE}/convai/agents/${agentId}`,
@@ -454,14 +500,26 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
               prompt: {
                 prompt: dynamicPrompt,
               },
+              // Reduce response delay for faster interactions
+              response_delay_ms: 500,
             },
           },
         }),
       }
     )
 
+    // #region agent log
+    const updatePromptStatus = updatePromptResponse.ok
+    const updatePromptStatusText = updatePromptResponse.status
+    let updatePromptErrorText = null
     if (!updatePromptResponse.ok) {
-      const errorText = await updatePromptResponse.text()
+      updatePromptErrorText = await updatePromptResponse.text()
+    }
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:495',message:'Prompt update response',data:{success:updatePromptStatus,status:updatePromptStatusText,error:updatePromptErrorText},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'G,H,I'})}).catch(()=>{});
+    // #endregion
+
+    if (!updatePromptResponse.ok) {
+      const errorText = updatePromptErrorText || await updatePromptResponse.text()
       let errorMessage = 'Failed to update agent prompt'
       try {
         const errorJson = JSON.parse(errorText)
@@ -509,28 +567,117 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
     const conversationId = callResult.conversation_id || callResult.conversationId || null
 
     // Create a call record to track this call
+    const now = new Date().toISOString()
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:517',message:'Before call record insert',data:{claimId:claim.id,claimOrganizationId:claim.organization_id||null,conversationId,callSid:callResult.call_sid,toNumber,status:'initiated',startedAt:now},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+    
+    // Check if calls table has organization_id column by trying to select it
+    const { data: testCall, error: testCallError } = await supabase
+      .from('calls')
+      .select('id, organization_id')
+      .limit(1)
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:525',message:'Check calls table structure',data:{hasOrgColumn:testCallError?.code!=='42703',testError:testCallError?.message||null,testCode:testCallError?.code||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+    
+    // Test if we can query calls table (hypothesis: SELECT works but INSERT doesn't)
+    const { data: testQuery, error: testError } = await supabase
+      .from('calls')
+      .select('id')
+      .limit(1)
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:533',message:'Test query calls table',data:{canQuery:!testError,testError:testError?.message||null,testCode:testError?.code||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
+    
+    // Build insert data
+    // Note: calls table does not have organization_id column, so we don't include it
+    // Service role client bypasses RLS, so organization membership is not checked
+    const insertData: any = {
+      claim_id: claim.id,
+      conversation_id: conversationId,
+      call_sid: callResult.call_sid,
+      to_number: toNumber,
+      status: 'initiated',
+      started_at: now,
+    }
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:545',message:'Insert data prepared',data:{claimOrgId:claim.organization_id||null,insertKeys:Object.keys(insertData)},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+    
     const { data: callRecord, error: callRecordError } = await supabase
       .from('calls')
-      .insert({
-        claim_id: claim.id,
-        conversation_id: conversationId,
-        call_sid: callResult.call_sid,
-        to_number: toNumber,
-        status: 'initiated',
-      })
+      .insert(insertData)
       .select()
       .single()
 
+    // #region agent log
+    fetch('http://127.0.0.1:7244/ingest/be7aff16-d429-4a75-8f70-8af1d47e5494',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'demo/make-call/route.ts:555',message:'After call record insert',data:{success:!callRecordError,callId:callRecord?.id,error:callRecordError?.message||null,errorCode:callRecordError?.code||null,errorDetails:callRecordError?.details||null,errorHint:callRecordError?.hint||null},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+
     if (callRecordError) {
-      console.error('Error creating call record:', callRecordError)
-      // Continue anyway - don't fail the call if we can't track it
+      console.error('Error creating call record:', {
+        error: callRecordError,
+        message: callRecordError.message,
+        details: callRecordError.details,
+        hint: callRecordError.hint,
+        code: callRecordError.code,
+        claim_id: claim.id,
+        conversation_id: conversationId,
+        call_sid: callResult.call_sid,
+      })
+      // Return error - we need the call record to track the call
+      return NextResponse.json(
+        {
+          error: 'Call was initiated but failed to create tracking record',
+          details: callRecordError.message,
+          call_sid: callResult.call_sid,
+          conversation_id: conversationId,
+        },
+        { status: 500 }
+      )
     }
+
+    if (!callRecord) {
+      console.error('Call record was not created despite no error')
+      return NextResponse.json(
+        {
+          error: 'Call was initiated but call record was not created',
+          call_sid: callResult.call_sid,
+          conversation_id: conversationId,
+        },
+        { status: 500 }
+      )
+    }
+
+    console.log('Call record created successfully:', {
+      call_id: callRecord.id,
+      claim_id: claim.id,
+      conversation_id: conversationId,
+      status: callRecord.status,
+      started_at: callRecord.started_at,
+    })
 
     // Update the claim to mark it as called
     await supabase
       .from('claims')
       .update({ called_at: new Date().toISOString() })
       .eq('id', claim.id)
+
+    // Log the response for debugging
+    console.log('Call initiated successfully:', {
+      call_id: callRecord?.id,
+      conversation_id: conversationId,
+      call_sid: callResult.call_sid,
+      status: callRecord?.status,
+      started_at: callRecord?.started_at,
+      claim_id: claim.id,
+      to_number: toNumber,
+    })
 
     return NextResponse.json({
       success: true,
@@ -540,6 +687,8 @@ If asked a Yes or No question, respond with only "Yes" or "No" - do not add any 
       call_id: callRecord?.id,
       claim_id: claim.id,
       to_number: toNumber,
+      call_status: callRecord?.status,
+      started_at: callRecord?.started_at,
     })
   } catch (error) {
     console.error('Error making demo call:', error)

@@ -817,7 +817,7 @@ export default function DemoPage() {
                       </div>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-dark/70 mb-1">
                         Date of Service
@@ -835,6 +835,12 @@ export default function DemoPage() {
                         Billed Amount
                       </label>
                       <p className="text-dark font-medium text-xl">{claim.billed_amount !== undefined && claim.billed_amount !== null ? formatCurrency(claim.billed_amount) : 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-dark/70 mb-1">
+                        Length of Service
+                      </label>
+                      <p className="text-dark font-medium">{claim.length_of_service || 'N/A'}</p>
                     </div>
                   </div>
                 </div>

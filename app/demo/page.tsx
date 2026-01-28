@@ -137,6 +137,13 @@ export default function DemoPage() {
 
   // Fetch 1738493 claim on mount
   useEffect(() => {
+    // Verify Supabase client is initialized
+    if (!supabase) {
+      console.error('Supabase client not initialized')
+      setCallStatus('❌ Database connection error. Please refresh the page.')
+      setLoading(false)
+      return
+    }
     fetchDemoClaim()
   }, [])
 
@@ -148,9 +155,15 @@ export default function DemoPage() {
         const data = await response.json()
         
         if (data.activeCall) {
+          if (!activeCall || activeCall.id !== data.activeCall.id) {
+            console.log('Active call updated:', data.activeCall)
+          }
           setActiveCall(data.activeCall)
           setCallStatus(null)
         } else {
+          if (activeCall) {
+            console.log('Active call ended or not found')
+          }
           setActiveCall(null)
         }
       } catch (error) {
@@ -209,8 +222,21 @@ export default function DemoPage() {
         .maybeSingle()
 
       if (error) {
-        console.error('Error fetching demo claim:', error)
+        console.error('Error fetching demo claim:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        const errorMsg = `❌ Error fetching demo claim: ${error.message}`
+        setCallStatus(errorMsg)
+        // Clear error message after 5 seconds
+        setTimeout(() => setCallStatus(null), 5000)
+      } else if (!data) {
+        console.log('Demo claim not found - it will be created when you make your first call')
+        setClaim(null)
       } else {
+        console.log('Demo claim found:', data.id)
         setClaim(data)
         if (data?.id) {
           await fetchDenialReasons(data.id)
@@ -218,6 +244,7 @@ export default function DemoPage() {
       }
     } catch (error) {
       console.error('Error fetching demo claim:', error)
+      setCallStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`)
     } finally {
       setLoading(false)
     }
@@ -288,14 +315,23 @@ export default function DemoPage() {
         // Check for active call
         const checkForActiveCall = async (retries = 5) => {
           try {
+            console.log(`Checking for active call (retries left: ${retries})...`)
             const activeResponse = await fetch('/api/calls/active')
             const activeData = await activeResponse.json()
             
+            console.log('Active call response:', activeData)
+            
             if (activeData.activeCall) {
+              console.log('Active call found:', activeData.activeCall)
               setActiveCall(activeData.activeCall)
               setCallStatus(null)
-            } else if (retries > 0) {
-              setTimeout(() => checkForActiveCall(retries - 1), 500)
+            } else {
+              console.log('No active call found')
+              if (retries > 0) {
+                setTimeout(() => checkForActiveCall(retries - 1), 500)
+              } else {
+                console.warn('No active call found after all retries. Call ID from response:', data.call_id)
+              }
             }
           } catch (error) {
             console.error('Error checking for active call:', error)
@@ -305,7 +341,8 @@ export default function DemoPage() {
           }
         }
         
-        checkForActiveCall()
+        // Wait a moment for the call record to be created, then check
+        setTimeout(() => checkForActiveCall(), 100)
       } else {
         // Show detailed error message
         const errorMsg = data.error || 'Failed to initiate call'
@@ -778,7 +815,7 @@ export default function DemoPage() {
                       </div>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {claim.date_of_service && (
                       <div>
                         <label className="block text-sm font-medium text-dark/70 mb-1">
@@ -803,6 +840,12 @@ export default function DemoPage() {
                         <p className="text-dark font-medium text-xl">{formatCurrency(claim.billed_amount)}</p>
                       </div>
                     )}
+                    <div>
+                      <label className="block text-sm font-medium text-dark/70 mb-1">
+                        Length of Service
+                      </label>
+                      <p className="text-dark font-medium">{claim.length_of_service || 'N/A'}</p>
+                    </div>
                   </div>
                 </div>
               )}

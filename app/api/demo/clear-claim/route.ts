@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceRoleClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    // Use service role client for demo claim operations to bypass RLS
+    const supabase = createServiceRoleClient()
 
     // Find the 1738493 claim
     const { data: claim, error: claimError } = await supabase
@@ -15,7 +16,7 @@ export async function POST(request: NextRequest) {
     if (claimError) {
       console.error('Error fetching demo claim:', claimError)
       return NextResponse.json(
-        { error: 'Failed to fetch demo claim' },
+        { error: 'Failed to fetch demo claim', details: claimError.message },
         { status: 500 }
       )
     }
@@ -28,18 +29,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Delete all denial reasons for this claim
-    const { error: deleteError } = await supabase
+    const { data: deletedReasons, error: deleteError } = await supabase
       .from('denial_reasons')
       .delete()
       .eq('claim_id', claim.id)
+      .select()
 
     if (deleteError) {
       console.error('Error deleting denial reasons:', deleteError)
       return NextResponse.json(
-        { error: 'Failed to delete denial reasons' },
+        { error: 'Failed to delete denial reasons', details: deleteError.message },
         { status: 500 }
       )
     }
+
+    const deletedCount = deletedReasons?.length || 0
+    console.log(`Deleted ${deletedCount} denial reasons for demo claim`)
 
     // Reset claim status to "Denied" and clear called_at
     const { error: updateError } = await supabase
@@ -53,7 +58,7 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error('Error updating claim status:', updateError)
       return NextResponse.json(
-        { error: 'Failed to update claim status' },
+        { error: 'Failed to update claim status', details: updateError.message },
         { status: 500 }
       )
     }
@@ -61,6 +66,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Demo claim cleared successfully',
+      deleted_denial_reasons: deletedCount,
     })
   } catch (error) {
     console.error('Error clearing demo claim:', error)
